@@ -1,14 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@supabase/supabase-js': path.resolve(__dirname, './node_modules/@supabase/supabase-js'),
+      '@': path.resolve(rootDir, './src'),
+      '@supabase/supabase-js': path.resolve(rootDir, './node_modules/@supabase/supabase-js'),
     },
   },
   server: {
