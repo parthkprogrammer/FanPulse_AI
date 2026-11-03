@@ -217,18 +217,24 @@ export const fantasyService = {
   /**
    * Retrieves drafted teams for user
    */
-  async getUserFantasyTeams() {
+  async getUserFantasyTeams({ matchId } = {}) {
     await new Promise((resolve) => setTimeout(resolve, 200));
 
     if (isSupabaseConfigured()) {
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('fantasy_teams')
           .select(`
             id, team_name, match_id, captain_player_id, vice_captain_player_id, total_points, created_at,
             players:fantasy_team_players(player_id, player_name, player_role, team_code, is_captain, is_vice_captain)
           `)
           .order('created_at', { ascending: false });
+
+        if (matchId) {
+          query = query.eq('match_id', matchId);
+        }
+
+        const { data, error } = await query;
 
         if (!error && data && data.length > 0) {
           return {
@@ -243,8 +249,11 @@ export const fantasyService = {
 
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const filtered = matchId
+        ? stored.filter((t) => t.matchId === matchId || t.match_id === matchId)
+        : stored;
       return {
-        teams: stored,
+        teams: filtered,
         isDemoData: true,
         dataLabel: 'DEMO DATA',
       };
@@ -562,6 +571,173 @@ export const fantasyService = {
         },
       ],
     };
+  },
+
+  /**
+   * Retrieves single fantasy team by ID
+   */
+  async getFantasyTeamById(teamId) {
+    if (!teamId) return null;
+    const { teams } = await this.getUserFantasyTeams();
+    return teams.find((t) => t.id === teamId) || null;
+  },
+
+  /**
+   * Updates an existing fantasy team (Ownership enforced)
+   */
+  async updateFantasyTeam(teamId, teamData) {
+    if (!teamId) {
+      throw new Error('teamId is required to update a fantasy team.');
+    }
+
+    const { isValid, errors } = this.validateTeamComposition(teamData);
+    if (!isValid) {
+      const err = new Error(errors[0]);
+      err.validationErrors = errors;
+      throw err;
+    }
+
+    if (isSupabaseConfigured()) {
+      try {
+        const response = await apiClient.post('/manage-fantasy-teams', {
+          action: 'update',
+          teamId,
+          teamName: teamData.teamName,
+          captainPlayerId: teamData.captainPlayerId,
+          viceCaptainPlayerId: teamData.viceCaptainPlayerId,
+          players: teamData.players.map((p) => ({
+            id: p.id,
+            name: p.name,
+            role: p.role,
+            teamCode: p.teamCode,
+          })),
+        });
+
+        if (response.data?.status === 'success') {
+          return response.data.data?.team || response.data.data;
+        }
+      } catch (err) {
+        if (err.response?.data?.message) {
+          throw new Error(err.response.data.message);
+        }
+        throw err;
+      }
+    }
+
+    // Mock storage update
+    try {
+      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const index = existing.findIndex((t) => t.id === teamId);
+      if (index !== -1) {
+        existing[index] = {
+          ...existing[index],
+          teamName: teamData.teamName.trim(),
+          captainPlayerId: teamData.captainPlayerId,
+          viceCaptainPlayerId: teamData.viceCaptainPlayerId,
+          players: teamData.players,
+          updatedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+        return existing[index];
+      }
+    } catch {
+      // Storage error
+    }
+
+    return null;
+  },
+
+  /**
+   * Deletes a fantasy team prior to match start
+   */
+  async deleteFantasyTeam(teamId) {
+    if (!teamId) {
+      throw new Error('teamId is required.');
+    }
+
+    if (isSupabaseConfigured()) {
+      try {
+        const response = await apiClient.post('/manage-fantasy-teams', {
+          action: 'delete',
+          teamId,
+        });
+
+        if (response.data?.status === 'success') {
+          return { success: true };
+        }
+      } catch (err) {
+        if (err.response?.data?.message) {
+          throw new Error(err.response.data.message);
+        }
+        throw err;
+      }
+    }
+
+    // Mock storage delete
+    try {
+      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const filtered = existing.filter((t) => t.id !== teamId);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
+  },
+
+  /**
+   * Re-assigns captain and vice-captain for a fantasy team
+   */
+  async assignTeamRoles(teamId, { captainPlayerId, viceCaptainPlayerId }) {
+    if (!teamId || !captainPlayerId || !viceCaptainPlayerId) {
+      throw new Error('teamId, captainPlayerId, and viceCaptainPlayerId are required.');
+    }
+
+    if (captainPlayerId === viceCaptainPlayerId) {
+      throw new Error('Captain and Vice-Captain cannot be the same player (BR-TEAM-04).');
+    }
+
+    if (isSupabaseConfigured()) {
+      try {
+        const response = await apiClient.post('/manage-fantasy-teams', {
+          action: 'assign-roles',
+          teamId,
+          captainPlayerId,
+          viceCaptainPlayerId,
+        });
+
+        if (response.data?.status === 'success') {
+          return response.data.data;
+        }
+      } catch (err) {
+        if (err.response?.data?.message) {
+          throw new Error(err.response.data.message);
+        }
+        throw err;
+      }
+    }
+
+    // Mock storage role assignment
+    try {
+      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const index = existing.findIndex((t) => t.id === teamId);
+      if (index !== -1) {
+        existing[index].captainPlayerId = captainPlayerId;
+        existing[index].viceCaptainPlayerId = viceCaptainPlayerId;
+        if (existing[index].players) {
+          existing[index].players = existing[index].players.map((p) => ({
+            ...p,
+            isCaptain: p.id === captainPlayerId,
+            isViceCaptain: p.id === viceCaptainPlayerId,
+          }));
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+        return existing[index];
+      }
+    } catch {
+      // Storage error
+    }
+
+    return null;
   },
 };
 
