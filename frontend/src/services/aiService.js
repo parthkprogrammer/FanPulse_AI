@@ -54,7 +54,14 @@ export const aiService = {
   /**
    * Submits a question to the AI Assistant via Supabase Edge Function
    */
-  async askQuestion({ matchId, question, conversationHistory = [] }) {
+  async askQuestion({
+    matchId,
+    question,
+    conversationHistory = [],
+    topic = 'MATCH_EXPLANATION',
+    playerId,
+    fantasyTeamId,
+  }) {
     if (!matchId) {
       throw new Error('Please select a cricket match fixture.');
     }
@@ -76,6 +83,9 @@ export const aiService = {
         {
           matchId,
           question: question.trim(),
+          topic,
+          ...(playerId ? { playerId } : {}),
+          ...(fantasyTeamId ? { fantasyTeamId } : {}),
           conversationHistory: conversationHistory.slice(-4),
         },
         { timeout: 15000 }
@@ -84,7 +94,7 @@ export const aiService = {
       if (response.data?.status === 'success' && response.data?.data) {
         return {
           ...response.data.data,
-          isSimulated: false,
+          isSimulated: Boolean(response.data.data.isSimulated),
         };
       }
     } catch (err) {
