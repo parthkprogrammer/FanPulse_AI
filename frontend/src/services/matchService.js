@@ -851,6 +851,38 @@ export const matchService = {
       throw new Error(err.response?.data?.message || err.message || 'Failed to update match status.');
     }
   },
+
+  async getProviderStatus() {
+    try {
+      const response = await apiClient.get('/sync-cricket-data?action=provider-status');
+      if (response.data?.status === 'success' || response.data?.provider) {
+        return response.data.provider || response.data;
+      }
+      return response.data;
+    } catch {
+      return {
+        providerName: 'SampleCricketDataProvider',
+        isLive: false,
+        notice: 'Operating in Sample Data Mode. External provider offline or unconfigured.',
+      };
+    }
+  },
+
+  async syncMatchFromProvider(matchId) {
+    if (!matchId) throw new Error('matchId is required to synchronize match telemetry.');
+    try {
+      const response = await apiClient.post('/sync-cricket-data', {
+        action: 'sync-to-database',
+        matchId,
+      });
+      if (response.data?.status === 'success') {
+        return response.data.data || response.data;
+      }
+      return response.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to synchronize match telemetry.');
+    }
+  },
 };
 
 export default matchService;
