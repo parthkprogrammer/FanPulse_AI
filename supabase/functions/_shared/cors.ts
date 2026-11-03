@@ -1,20 +1,6 @@
 /**
  * Reusable CORS headers and preflight handling for Supabase Edge Functions.
+ * Re-exported from modular shared architecture.
  */
 
-export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-};
-
-/**
- * Handles CORS OPTIONS preflight request.
- * Returns a 200 OK Response if OPTIONS, or null otherwise.
- */
-export function handleCors(req: Request): Response | null {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-  return null;
-}
+export * from './shared/cors.ts';
