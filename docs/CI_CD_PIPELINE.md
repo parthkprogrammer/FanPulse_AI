@@ -1,6 +1,6 @@
 # FanPulse AI — CI/CD Pipeline & GitHub Actions Guide
 
-**Document Version:** 1.0.0  
+**Document Version:** 1.1.0  
 **Date:** 2026-11-03  
 **Role:** Senior DevOps / CI/CD Engineer  
 **Approved Architecture:** React + Vite SPA, Supabase CLI, PostgreSQL 17, Deno Edge Functions  
@@ -17,53 +17,43 @@ FanPulse AI implements a modern, secure, and cost-free CI/CD strategy using **Gi
 2. **Automated Quality Gating:** Every Pull Request and commit to `main` or `feat/**` automatically triggers full frontend linting, unit/component tests, Vite production builds, Supabase config validation, SQL migration validation, and backend integration test suites.
 3. **Zero Secret Leaks:** All deployment credentials and tokens are managed via GitHub Secrets and masked at runtime using `::add-mask::`. No credentials or passwords are ever printed in workflow logs.
 4. **No Paid Resources:** All CI jobs run within standard GitHub-hosted `ubuntu-latest` runners without third-party paid infrastructure.
+5. **No Automatic Release Deployments:** Deployment is strictly opt-in via manual `workflow_dispatch`. Publishing a tag or drafting a release does NOT trigger automatic deployments.
+6. **Enforced Gateway JWT Verification:** Production deployments enforce Supabase Kong API Gateway JWT signature verification on all protected Edge Functions; `--no-verify-jwt` is restricted exclusively to public unauthenticated diagnostic probes.
 
 ```mermaid
 flowchart TD
-    subgraph TriggerEvents["Event Triggers"]
-        PR["Pull Request\n(target: main, feat/**)"]
-        PushBranch["Push to Branch\n(main, feat/**)"]
-        ManualDispatch["Manual Trigger\n(workflow_dispatch)"]
-        ReleaseTag["Release Tag\n(v*)"]
+    subgraph Triggers["Pipeline Event Triggers"]
+        PR["Pull Request (main, feat/**)"]
+        PushCommit["Push (main, feat/**)"]
+        ManualRun["Manual Trigger (workflow_dispatch only)"]
     end
 
-    subgraph CIWorkflow["CI Pipeline (.github/workflows/ci.yml)"]
+    subgraph CI["CI Pipeline: .github/workflows/ci.yml"]
         subgraph FrontendJob["Job: frontend-ci"]
-            Checkout1["Checkout Code"]
-            SetupNode1["Setup Node.js 20"]
-            InstallDeps1["npm ci"]
-            Lint1["ESLint (npm run lint)"]
-            Test1["Vitest (npm run test)"]
-            Build1["Vite Build (npm run build)"]
-            Artifact1["Upload Artifact (frontend-dist)"]
+            F1["npm ci"] --> F2["ESLint (npm run lint)"]
+            F2 --> F3["Vitest (460 tests)"]
+            F3 --> F4["Vite Build (dist/)"]
+            F4 --> F5["Upload Artifact (frontend-dist)"]
         end
 
         subgraph SupabaseJob["Job: supabase-ci"]
-            Checkout2["Checkout Code"]
-            SetupCli2["Setup Supabase CLI & Deno"]
-            VerifyConfig2["Verify config.toml"]
-            VerifyMigrations2["Verify Migrations & Seed DDL"]
-            DenoLint2["Deno Lint Edge Functions"]
-            BackendTests2["Run Backend Integration Tests"]
+            S1["Setup Supabase CLI & Deno"] --> S2["Validate config.toml"]
+            S2 --> S3["Validate SQL Migrations & Seed"]
+            S3 --> S4["Deno Lint Edge Functions"]
+            S4 --> S5["Run Backend Integration Tests"]
         end
     end
 
-    subgraph DeployWorkflow["Deployment Pipeline (.github/workflows/deploy.yml)"]
-        MaskSecrets["Mask Sensitive Secrets (::add-mask::)"]
-        LinkProject["Link Supabase Project Ref"]
-        PushMigrations["Apply Migrations (supabase db push)"]
-        DeployFunctions["Deploy Edge Functions (all 9 functions)"]
-        BuildFrontend["Build Release Frontend Assets"]
+    subgraph Deploy["Deployment Pipeline: .github/workflows/deploy.yml"]
+        D1["::add-mask:: Secrets via env"] --> D2["Link Project Ref"]
+        D2 --> D3["Conditional db push"]
+        D3 --> D4["Deploy Edge Functions (Enforce Gateway JWTs)"]
+        D4 --> D5["Package Frontend Release Bundle"]
     end
 
-    PR --> CIWorkflow
-    PushBranch --> CIWorkflow
-    ManualDispatch --> DeployWorkflow
-    ReleaseTag --> DeployWorkflow
-
-    Checkout1 --> SetupNode1 --> InstallDeps1 --> Lint1 --> Test1 --> Build1 --> Artifact1
-    Checkout2 --> SetupCli2 --> VerifyConfig2 --> VerifyMigrations2 --> DenoLint2 --> BackendTests2
-    MaskSecrets --> LinkProject --> PushMigrations --> DeployFunctions --> BuildFrontend
+    PR --> CI
+    PushCommit --> CI
+    ManualRun --> Deploy
 ```
 
 ---
@@ -86,7 +76,7 @@ flowchart TD
 1. **Checkout Code:** Retrieves repository tree via `actions/checkout@v4`.
 2. **Install Dependencies:** Executes clean, deterministic `npm ci` in `frontend/`.
 3. **Lint:** Runs ESLint (`npm run lint`) to detect unused variables, broken syntax, or unhandled errors.
-4. **Automated Tests:** Executes all 30 Vitest suites (460 tests) covering authentication, state stores, forms, match center, comparison charts, and AI assistant components.
+4. **Automated Tests:** Executes all 30 Vitest suites (460 unit, integration, and UI tests).
 5. **Production Build:** Builds minified static bundle via `npm run build`.
 6. **Artifact Storage:** Uploads `frontend/dist/` as a temporary build artifact for 7 days.
 
@@ -103,15 +93,18 @@ flowchart TD
 | Attribute | Specification |
 |:---|:---|
 | **File Path** | `.github/workflows/deploy.yml` |
-| **Triggers** | `workflow_dispatch` (manual trigger) or `release: [published]` |
+| **Triggers** | `workflow_dispatch` (strictly manual trigger; no automatic release triggers) |
 | **Parameters** | `target_environment` (`preview`, `production`), `deploy_database` (bool), `deploy_functions` (bool), `deploy_frontend` (bool) |
-| **Security** | Secrets masked with `::add-mask::`; zero credential output in logs |
+| **Security & Secrets** | Secrets passed via `env:` mapping and masked with `::add-mask::`; zero credential exposure in logs |
+| **Gateway JWT Verification** | Protected functions enforce Supabase Gateway JWT verification; only public probes use `--no-verify-jwt` |
 
 #### Deployable Actions:
-1. **Database Migrations:** Executes `supabase db push --include-all` against linked cloud project.
-2. **Secrets Sync:** Syncs `GEMINI_API_KEY` to encrypted Supabase Vault via `supabase secrets set`.
-3. **Edge Functions:** Deploys all 9 serverless Edge Functions to Supabase Cloud.
-4. **Frontend Release Package:** Packages production assets into a downloadable release archive.
+1. **Database Migrations:** Executes `supabase db push --include-all` only when `deploy_database: true`.
+2. **Secrets Sync:** Injects `GEMINI_API_KEY` securely into Supabase Vault using `supabase secrets set`.
+3. **Edge Functions Deployment:** Deploys Edge Functions with appropriate JWT security levels:
+   - **Public Probes (`--no-verify-jwt`):** `health-check`, `validate-fantasy-team`, `compare-fantasy-teams`
+   - **Protected Functions (Enforce Gateway JWTs):** `manage-fantasy-teams`, `manage-matches`, `manage-players`, `calculate-fantasy-scoring`, `sync-cricket-data`, `ai-assistant`
+4. **Frontend Release Package:** Builds and packages minified production assets into a downloadable release archive.
 
 ---
 

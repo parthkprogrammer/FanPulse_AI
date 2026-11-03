@@ -1,9 +1,11 @@
 name: FanPulse AI — Deployment Workflow
 
-# Strict DevOps Principle:
-# Deployment workflows are kept completely separate from CI validation.
-# Triggers manually via workflow_dispatch or on official version tags (v*).
-# Does NOT execute automatically on every PR or commit.
+# Strict DevOps Principles:
+# 1. Deployment workflows are kept completely separate from CI validation.
+# 2. Manual trigger only (workflow_dispatch) with explicit component selection.
+# 3. No automatic triggers on PR, commit, or release publication.
+# 4. Strict secret masking and environment-level isolation.
+# 5. Protected Edge Functions enforce Supabase Gateway JWT verification.
 
 on:
   workflow_dispatch:
@@ -32,15 +34,12 @@ on:
         type: boolean
         default: true
 
-  release:
-    types: [published]
-
 permissions:
   contents: read
   deployments: write
 
 concurrency:
-  group: deployment-${{ github.event.inputs.target_environment || 'production' }}
+  group: deployment-${{ github.ref }}-${{ inputs.target_environment }}
   cancel-in-progress: false
 
 jobs:
@@ -50,8 +49,8 @@ jobs:
   deploy-supabase:
     name: Deploy Supabase (Database & Functions)
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'release' || github.event.inputs.deploy_database == 'true' || github.event.inputs.deploy_functions == 'true' }}
-    environment: ${{ github.event.inputs.target_environment || 'production' }}
+    if: ${{ inputs.deploy_database || inputs.deploy_functions }}
+    environment: ${{ inputs.target_environment }}
 
     steps:
       - name: Checkout Code
@@ -64,61 +63,64 @@ jobs:
 
       - name: Mask Sensitive Deployment Secrets
         run: |
-          # Strictly prevent secrets from printing in logs
-          if [ -n "${{ secrets.SUPABASE_ACCESS_TOKEN }}" ]; then
-            echo "::add-mask::${{ secrets.SUPABASE_ACCESS_TOKEN }}"
-          fi
-          if [ -n "${{ secrets.SUPABASE_PROJECT_ID }}" ]; then
-            echo "::add-mask::${{ secrets.SUPABASE_PROJECT_ID }}"
-          fi
-          if [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then
-            echo "::add-mask::${{ secrets.GEMINI_API_KEY }}"
-          fi
-          if [ -n "${{ secrets.SUPABASE_DB_PASSWORD }}" ]; then
-            echo "::add-mask::${{ secrets.SUPABASE_DB_PASSWORD }}"
-          fi
+          echo "::add-mask::$SUPABASE_ACCESS_TOKEN"
+          echo "::add-mask::$SUPABASE_PROJECT_ID"
+          echo "::add-mask::$GEMINI_API_KEY"
+          echo "::add-mask::$SUPABASE_DB_PASSWORD"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
       - name: Link Supabase Project
         if: ${{ secrets.SUPABASE_PROJECT_ID != '' && secrets.SUPABASE_ACCESS_TOKEN != '' }}
         run: |
-          echo "Linking Supabase project ref..."
-          npx supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
+          echo "Linking to Supabase project ref..."
+          npx supabase link --project-ref "$SUPABASE_PROJECT_ID"
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
       - name: Apply Database Migrations (db push)
-        if: ${{ (github.event_name == 'release' || github.event.inputs.deploy_database == 'true') && secrets.SUPABASE_PROJECT_ID != '' }}
+        if: ${{ inputs.deploy_database && secrets.SUPABASE_PROJECT_ID != '' }}
         run: |
-          echo "Pushing version-controlled migrations to Supabase..."
+          echo "Applying version-controlled migrations to remote database..."
           npx supabase db push --include-all
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
-      - name: Set Edge Function Secrets
-        if: ${{ secrets.GEMINI_API_KEY != '' && secrets.SUPABASE_PROJECT_ID != '' }}
+      - name: Set Edge Function Secrets in Supabase Vault
+        if: ${{ inputs.deploy_functions && secrets.GEMINI_API_KEY != '' && secrets.SUPABASE_PROJECT_ID != '' }}
         run: |
-          echo "Syncing server-side secrets to Supabase Vault..."
+          echo "Configuring server-side secrets in Supabase Vault..."
           npx supabase secrets set \
-            GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
-            ENVIRONMENT="${{ github.event.inputs.target_environment || 'production' }}"
+            GEMINI_API_KEY="$GEMINI_API_KEY" \
+            ENVIRONMENT="$DEPLOY_ENV"
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DEPLOY_ENV: ${{ inputs.target_environment }}
 
-      - name: Deploy Supabase Edge Functions
-        if: ${{ (github.event_name == 'release' || github.event.inputs.deploy_functions == 'true') && secrets.SUPABASE_PROJECT_ID != '' }}
+      - name: Deploy Supabase Edge Functions (Enforcing Gateway JWTs)
+        if: ${{ inputs.deploy_functions && secrets.SUPABASE_PROJECT_ID != '' }}
         run: |
-          echo "Deploying all 9 Edge Functions to Supabase Cloud..."
+          echo "Deploying Edge Functions with appropriate JWT security levels..."
+          
+          # 1. Public probes (unauthenticated diagnostic/public endpoints)
           npx supabase functions deploy health-check --no-verify-jwt
           npx supabase functions deploy validate-fantasy-team --no-verify-jwt
           npx supabase functions deploy compare-fantasy-teams --no-verify-jwt
-          npx supabase functions deploy calculate-fantasy-scoring --no-verify-jwt
-          npx supabase functions deploy manage-fantasy-teams --no-verify-jwt
-          npx supabase functions deploy manage-matches --no-verify-jwt
-          npx supabase functions deploy manage-players --no-verify-jwt
-          npx supabase functions deploy sync-cricket-data --no-verify-jwt
-          npx supabase functions deploy ai-assistant --no-verify-jwt
+          
+          # 2. Protected endpoints (strictly enforcing Gateway JWT verification)
+          npx supabase functions deploy calculate-fantasy-scoring
+          npx supabase functions deploy manage-fantasy-teams
+          npx supabase functions deploy manage-matches
+          npx supabase functions deploy manage-players
+          npx supabase functions deploy sync-cricket-data
+          npx supabase functions deploy ai-assistant
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
@@ -128,8 +130,8 @@ jobs:
   build-frontend:
     name: Build & Package Frontend
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'release' || github.event.inputs.deploy_frontend == 'true' }}
-    environment: ${{ github.event.inputs.target_environment || 'production' }}
+    if: ${{ inputs.deploy_frontend }}
+    environment: ${{ inputs.target_environment }}
     defaults:
       run:
         working-directory: frontend
@@ -148,11 +150,13 @@ jobs:
       - name: Install Frontend Dependencies
         run: npm ci
 
-      - name: Mask Public Endpoint Configuration
+      - name: Mask Public Client Endpoint Configuration
         run: |
-          if [ -n "${{ secrets.VITE_SUPABASE_ANON_KEY }}" ]; then
-            echo "::add-mask::${{ secrets.VITE_SUPABASE_ANON_KEY }}"
+          if [ -n "$VITE_SUPABASE_ANON_KEY" ]; then
+            echo "::add-mask::$VITE_SUPABASE_ANON_KEY"
           fi
+        env:
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Build Vite Production Assets
         run: npm run build
@@ -165,6 +169,6 @@ jobs:
       - name: Upload Release Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-dist-${{ github.event.inputs.target_environment || 'production' }}
+          name: release-dist-${{ inputs.target_environment }}
           path: frontend/dist/
           retention-days: 14
