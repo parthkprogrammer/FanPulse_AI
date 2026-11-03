@@ -58,22 +58,22 @@ Deno.serve(async (req: Request) => {
 
     // Rule: Team Name between 3 and 100 characters
     if (!teamName || teamName.trim().length < 3 || teamName.trim().length > 100) {
-      validationErrors.push('teamName must be between 3 and 100 characters.');
+      validationErrors.push('Team name must be between 3 and 100 characters.');
     }
 
     // Rule: Exactly 11 players (BR-TEAM-01)
     if (!Array.isArray(players) || players.length !== 11) {
-      validationErrors.push('A fantasy squad must contain exactly 11 players (BR-TEAM-01).');
+      validationErrors.push('Squad must contain exactly 11 players (BR-TEAM-01).');
     }
 
-    // Rule: Unique players / no duplicates (BR-TEAM-06)
-    const playerIds = players?.map((p) => p.id) || [];
+    // Rule: Unique players, no duplicates (BR-TEAM-06)
+    const playerIds = players?.map((p) => p.id) ?? [];
     const uniqueIds = new Set(playerIds);
     if (uniqueIds.size !== playerIds.length) {
-      validationErrors.push('Duplicate players are not allowed in the same fantasy squad.');
+      validationErrors.push('Duplicate player selections are strictly prohibited (BR-TEAM-06).');
     }
 
-    // Rule: Captain and Vice-Captain required and distinct (BR-TEAM-04)
+    // Rule: Captain and Vice-Captain distinct (BR-TEAM-04)
     if (!captainPlayerId) {
       validationErrors.push('A Captain must be designated (BR-TEAM-04).');
     }
@@ -106,6 +106,18 @@ Deno.serve(async (req: Request) => {
       const teamCodes = new Set(players.map((p) => p.teamCode));
       if (teamCodes.size < 2) {
         validationErrors.push('Lineup must include players from both competing teams (BR-TEAM-02).');
+      }
+
+      // Rule: Maximum 7 players from a single team (BR-TEAM-02)
+      const teamCounts: Record<string, number> = {};
+      for (const player of players) {
+        if (player.teamCode) {
+          teamCounts[player.teamCode] = (teamCounts[player.teamCode] || 0) + 1;
+          if (teamCounts[player.teamCode] > 7) {
+            validationErrors.push('Maximum 7 players allowed from a single team (BR-TEAM-02).');
+            break;
+          }
+        }
       }
     }
 
