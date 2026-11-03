@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "npm run dev --prefix frontend",
     "build": "npm run build --prefix frontend",
+    "lint": "npm run lint --prefix frontend",
     "preview": "npm run preview --prefix frontend",
     "test": "npm run test --prefix frontend",
     "supabase:status": "npx supabase status",
@@ -27,3 +28,4 @@
   "author": "FanPulse AI Team",
   "license": "UNLICENSED"
 }
+

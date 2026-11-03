@@ -259,3 +259,4 @@ curl -i -X POST http://127.0.0.1:54321/functions/v1/ai-assistant \
 3. **Row Level Security (RLS):**
    - Direct database access from frontend via PostgREST is governed strictly by RLS policies.
    - The service role key is reserved strictly for backend Edge Functions requiring cross-tenant aggregation.
+

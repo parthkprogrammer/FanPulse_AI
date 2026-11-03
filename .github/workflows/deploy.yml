@@ -1,0 +1,170 @@
+name: FanPulse AI — Deployment Workflow
+
+# Strict DevOps Principle:
+# Deployment workflows are kept completely separate from CI validation.
+# Triggers manually via workflow_dispatch or on official version tags (v*).
+# Does NOT execute automatically on every PR or commit.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: 'Deployment Target Environment'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - production
+      deploy_database:
+        description: 'Apply Supabase database migrations (supabase db push)'
+        required: true
+        type: boolean
+        default: false
+      deploy_functions:
+        description: 'Deploy Supabase Edge Functions (supabase functions deploy)'
+        required: true
+        type: boolean
+        default: false
+      deploy_frontend:
+        description: 'Build & package Frontend SPA'
+        required: true
+        type: boolean
+        default: true
+
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: deployment-${{ github.event.inputs.target_environment || 'production' }}
+  cancel-in-progress: false
+
+jobs:
+  # ===========================================================================
+  # 1. DEPLOY SUPABASE BACKEND (MIGRATIONS & EDGE FUNCTIONS)
+  # ===========================================================================
+  deploy-supabase:
+    name: Deploy Supabase (Database & Functions)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'release' || github.event.inputs.deploy_database == 'true' || github.event.inputs.deploy_functions == 'true' }}
+    environment: ${{ github.event.inputs.target_environment || 'production' }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Mask Sensitive Deployment Secrets
+        run: |
+          # Strictly prevent secrets from printing in logs
+          if [ -n "${{ secrets.SUPABASE_ACCESS_TOKEN }}" ]; then
+            echo "::add-mask::${{ secrets.SUPABASE_ACCESS_TOKEN }}"
+          fi
+          if [ -n "${{ secrets.SUPABASE_PROJECT_ID }}" ]; then
+            echo "::add-mask::${{ secrets.SUPABASE_PROJECT_ID }}"
+          fi
+          if [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then
+            echo "::add-mask::${{ secrets.GEMINI_API_KEY }}"
+          fi
+          if [ -n "${{ secrets.SUPABASE_DB_PASSWORD }}" ]; then
+            echo "::add-mask::${{ secrets.SUPABASE_DB_PASSWORD }}"
+          fi
+
+      - name: Link Supabase Project
+        if: ${{ secrets.SUPABASE_PROJECT_ID != '' && secrets.SUPABASE_ACCESS_TOKEN != '' }}
+        run: |
+          echo "Linking Supabase project ref..."
+          npx supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+      - name: Apply Database Migrations (db push)
+        if: ${{ (github.event_name == 'release' || github.event.inputs.deploy_database == 'true') && secrets.SUPABASE_PROJECT_ID != '' }}
+        run: |
+          echo "Pushing version-controlled migrations to Supabase..."
+          npx supabase db push --include-all
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+      - name: Set Edge Function Secrets
+        if: ${{ secrets.GEMINI_API_KEY != '' && secrets.SUPABASE_PROJECT_ID != '' }}
+        run: |
+          echo "Syncing server-side secrets to Supabase Vault..."
+          npx supabase secrets set \
+            GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+            ENVIRONMENT="${{ github.event.inputs.target_environment || 'production' }}"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Supabase Edge Functions
+        if: ${{ (github.event_name == 'release' || github.event.inputs.deploy_functions == 'true') && secrets.SUPABASE_PROJECT_ID != '' }}
+        run: |
+          echo "Deploying all 9 Edge Functions to Supabase Cloud..."
+          npx supabase functions deploy health-check --no-verify-jwt
+          npx supabase functions deploy validate-fantasy-team --no-verify-jwt
+          npx supabase functions deploy compare-fantasy-teams --no-verify-jwt
+          npx supabase functions deploy calculate-fantasy-scoring --no-verify-jwt
+          npx supabase functions deploy manage-fantasy-teams --no-verify-jwt
+          npx supabase functions deploy manage-matches --no-verify-jwt
+          npx supabase functions deploy manage-players --no-verify-jwt
+          npx supabase functions deploy sync-cricket-data --no-verify-jwt
+          npx supabase functions deploy ai-assistant --no-verify-jwt
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  # ===========================================================================
+  # 2. BUILD & PACKAGE FRONTEND SPA
+  # ===========================================================================
+  build-frontend:
+    name: Build & Package Frontend
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'release' || github.event.inputs.deploy_frontend == 'true' }}
+    environment: ${{ github.event.inputs.target_environment || 'production' }}
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Mask Public Endpoint Configuration
+        run: |
+          if [ -n "${{ secrets.VITE_SUPABASE_ANON_KEY }}" ]; then
+            echo "::add-mask::${{ secrets.VITE_SUPABASE_ANON_KEY }}"
+          fi
+
+      - name: Build Vite Production Assets
+        run: npm run build
+        env:
+          VITE_APP_NAME: 'FanPulse AI'
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder-project.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://placeholder-project.supabase.co/functions/v1' }}
+
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dist-${{ github.event.inputs.target_environment || 'production' }}
+          path: frontend/dist/
+          retention-days: 14
