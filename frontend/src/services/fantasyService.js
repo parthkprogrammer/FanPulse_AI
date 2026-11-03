@@ -338,6 +338,11 @@ export const fantasyService = {
             ...response.data.data,
             isDemoData: false,
           };
+        } else if (response.data?.team1) {
+          return {
+            ...response.data,
+            isDemoData: false,
+          };
         }
       } catch (err) {
         if (err.response?.data?.message) {
