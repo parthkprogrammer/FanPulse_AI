@@ -52,28 +52,21 @@ Deno.serve(async (req: Request) => {
     // 3. Authenticate Caller Identity (Supabase GoTrue JWT)
     const authUser = await verifyAuth(req);
 
-    // 4. Retrieve both fantasy teams with squad lineups
+    // 4. Retrieve both fantasy teams with squad lineups in a single batched query (eliminates N+1 roundtrips)
     const callerClient = createCallerClient(req);
 
-    const { data: team1, error: err1 } = await callerClient
+    const { data: teamsData, error: teamsErr } = await callerClient
       .from('fantasy_teams')
       .select(`
         id, user_id, match_id, team_name, captain_player_id, vice_captain_player_id, total_points,
         players:fantasy_team_players(player_id, player_name, player_role, team_code, is_captain, is_vice_captain)
       `)
-      .eq('id', team1Id)
-      .maybeSingle();
+      .in('id', [team1Id, team2Id]);
 
-    const { data: team2, error: err2 } = await callerClient
-      .from('fantasy_teams')
-      .select(`
-        id, user_id, match_id, team_name, captain_player_id, vice_captain_player_id, total_points,
-        players:fantasy_team_players(player_id, player_name, player_role, team_code, is_captain, is_vice_captain)
-      `)
-      .eq('id', team2Id)
-      .maybeSingle();
+    const team1 = teamsData?.find((t: any) => t.id === team1Id);
+    const team2 = teamsData?.find((t: any) => t.id === team2Id);
 
-    if (err1 || err2 || !team1 || !team2) {
+    if (teamsErr || !team1 || !team2) {
       throw new NotFoundError('One or both fantasy teams were not found in the database.');
     }
 
@@ -108,27 +101,24 @@ Deno.serve(async (req: Request) => {
       matchSummary = match.title ? `${match.title} (${match.match_format || 'T20'})` : matchSummary;
     }
 
-    // 8. Query Authoritative Points (Never trust client points)
-    // First, check persistent fantasy_player_points
-    const { data: fpp1 } = await callerClient
+    // 8. Query Authoritative Points in a single batched query (Never trust client points)
+    // Checks persistent fantasy_player_points for both squads simultaneously
+    const { data: fppRows } = await callerClient
       .from('fantasy_player_points')
-      .select('player_id, final_points')
-      .eq('fantasy_team_id', team1.id);
-
-    const { data: fpp2 } = await callerClient
-      .from('fantasy_player_points')
-      .select('player_id, final_points')
-      .eq('fantasy_team_id', team2.id);
+      .select('fantasy_team_id, player_id, final_points')
+      .in('fantasy_team_id', [team1.id, team2.id]);
 
     const pointsMap1: Record<string, number> = {};
     const pointsMap2: Record<string, number> = {};
 
-    if (fpp1 && fpp1.length > 0) {
-      for (const row of fpp1) pointsMap1[row.player_id] = Number(row.final_points);
-    }
-
-    if (fpp2 && fpp2.length > 0) {
-      for (const row of fpp2) pointsMap2[row.player_id] = Number(row.final_points);
+    if (fppRows && fppRows.length > 0) {
+      for (const row of fppRows) {
+        if (row.fantasy_team_id === team1.id) {
+          pointsMap1[row.player_id] = Number(row.final_points);
+        } else if (row.fantasy_team_id === team2.id) {
+          pointsMap2[row.player_id] = Number(row.final_points);
+        }
+      }
     }
 
     // If points have not yet been stored in fantasy_player_points (e.g. on-the-fly evaluation)
