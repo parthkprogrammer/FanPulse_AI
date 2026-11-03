@@ -287,9 +287,9 @@ describe('Supabase Edge Functions Backend Architecture', () => {
     it('exposes approved deterministic scoring point values', () => {
       expect(SCORING_RULES.RUN).toBe(1.0);
       expect(SCORING_RULES.WICKET).toBe(25.0);
-      expect(SCORING_RULES.HALF_CENTURY_BONUS).toBe(8.0);
-      expect(SCORING_RULES.CENTURY_BONUS).toBe(16.0);
-      expect(SCORING_RULES.DUCK_PENALTY).toBe(-2.0);
+      expect(SCORING_RULES.HALF_CENTURY_BONUS).toBe(10.0);
+      expect(SCORING_RULES.CENTURY_BONUS).toBe(25.0);
+      expect(SCORING_RULES.DUCK_PENALTY).toBe(-5.0);
     });
   });
 
