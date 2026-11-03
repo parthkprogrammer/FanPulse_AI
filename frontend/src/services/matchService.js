@@ -1,5 +1,6 @@
 import { isSupabaseConfigured } from './authService';
 import { supabase } from './supabaseClient';
+import apiClient from './apiClient';
 
 /**
  * Sample matches dataset modeled directly from DATABASE_DESIGN.md and API_DESIGN.md.
@@ -539,7 +540,7 @@ export const matchService = {
   /**
    * Retrieves matches list with optional status, format, and search filtering
    */
-  async getMatches({ status = 'ALL', format = 'ALL', search = '', simulateError = false } = {}) {
+  async getMatches({ status = 'ALL', format = 'ALL', search = '', page = 1, pageSize = 20, simulateError = false } = {}) {
     // Artificial 250ms latency to test loading skeletons
     await new Promise((resolve) => setTimeout(resolve, 250));
 
@@ -602,7 +603,11 @@ export const matchService = {
     }
 
     return {
-      matches: filtered,
+      matches: filtered.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize),
+      total: filtered.length,
+      page,
+      pageSize,
+      totalPages: Math.ceil(filtered.length / pageSize),
       isDemoData: true,
       dataLabel: 'DEMO DATA',
       notice: 'Displaying verified sample cricket match telemetry. Provider integration connects in Milestone 6.',
@@ -731,6 +736,120 @@ export const matchService = {
       dataLabel: 'DEMO DATA',
       events: [],
     };
+  },
+
+  /**
+   * Creates a new match fixture (Requires ADMIN role)
+   */
+  async createMatch(matchData) {
+    if (!matchData?.title || !matchData?.team1Id || !matchData?.team2Id || !matchData?.format || !matchData?.venue) {
+      throw new Error('Missing required match creation fields (title, team1Id, team2Id, format, venue).');
+    }
+
+    if (matchData.team1Id === matchData.team2Id) {
+      throw new Error('Competing teams must be distinct.');
+    }
+
+    try {
+      const response = await apiClient.post('/manage-matches', {
+        action: 'create',
+        ...matchData,
+      });
+
+      if (response.data?.status === 'success') {
+        return response.data.data;
+      }
+      return response.data;
+    } catch (err) {
+      if (!isSupabaseConfigured()) {
+        const newDemoMatch = {
+          id: matchData.id || `m-${Date.now()}`,
+          title: matchData.title,
+          format: matchData.format,
+          status: matchData.status || 'UPCOMING',
+          venue: matchData.venue,
+          matchDate: matchData.matchDate || new Date().toISOString(),
+          isLive: matchData.status === 'LIVE' || matchData.status === 'IN_PROGRESS',
+          isDemoData: true,
+          dataLabel: 'DEMO DATA',
+          team1: { name: matchData.team1Id, code: String(matchData.team1Id).toUpperCase().slice(0, 3), score: 'Scheduled', wickets: 0, overs: 0 },
+          team2: { name: matchData.team2Id, code: String(matchData.team2Id).toUpperCase().slice(0, 3), score: 'Scheduled', wickets: 0, overs: 0 },
+          resultSummary: 'Fixture created by administrator.',
+        };
+        DEMO_MATCHES.unshift(newDemoMatch);
+        return {
+          match: newDemoMatch,
+          message: 'Match fixture created in development mock mode.',
+        };
+      }
+      throw new Error(err.response?.data?.message || err.message || 'Failed to create match fixture.');
+    }
+  },
+
+  /**
+   * Updates an existing match fixture (Requires ADMIN role)
+   */
+  async updateMatch(matchId, updates) {
+    if (!matchId) {
+      throw new Error('matchId is required.');
+    }
+
+    try {
+      const response = await apiClient.post('/manage-matches', {
+        action: 'update',
+        matchId,
+        ...updates,
+      });
+
+      if (response.data?.status === 'success') {
+        return response.data.data;
+      }
+      return response.data;
+    } catch (err) {
+      if (!isSupabaseConfigured()) {
+        const match = DEMO_MATCHES.find((m) => m.id === matchId);
+        if (match) {
+          Object.assign(match, updates);
+          return { match, message: 'Match updated in development mock mode.' };
+        }
+      }
+      throw new Error(err.response?.data?.message || err.message || 'Failed to update match fixture.');
+    }
+  },
+
+  /**
+   * Updates match status and optional result (Requires ADMIN role)
+   */
+  async updateMatchStatus(matchId, { status, resultSummary, winningTeamId }) {
+    if (!matchId || !status) {
+      throw new Error('matchId and status are required.');
+    }
+
+    try {
+      const response = await apiClient.post('/manage-matches', {
+        action: 'update-status',
+        matchId,
+        status,
+        resultSummary,
+        winningTeamId,
+      });
+
+      if (response.data?.status === 'success') {
+        return response.data.data;
+      }
+      return response.data;
+    } catch (err) {
+      if (!isSupabaseConfigured()) {
+        const match = DEMO_MATCHES.find((m) => m.id === matchId);
+        if (match) {
+          match.status = status;
+          if (resultSummary) match.resultSummary = resultSummary;
+          match.isLive = status === 'LIVE' || status === 'IN_PROGRESS';
+          return { match, message: `Match status updated to ${status}.` };
+        }
+      }
+      throw new Error(err.response?.data?.message || err.message || 'Failed to update match status.');
+    }
   },
 };
 
