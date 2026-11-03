@@ -9,6 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { StatCard, Card, Badge } from '../components/ui';
 
 // Sample verified match momentum data for Recharts demo
 const matchTrendData = [
@@ -32,9 +33,10 @@ export const DashboardPage = () => {
       {/* Welcome Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-pitch-card via-pitch-elevated to-pitch-card border border-pitch-border p-6 sm:p-8">
         <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cricket-green/10 text-cricket-green text-xs font-semibold mb-4 border border-cricket-green/30">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Cricket Fantasy Intelligence &bull; JavaScript + Supabase Stack</span>
+          <div className="inline-flex items-center gap-2 mb-4">
+            <Badge variant="success" size="sm" dot>
+              Cricket Fantasy Intelligence &bull; JavaScript + Supabase Stack
+            </Badge>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
             Welcome to <span className="text-cricket-green">FanPulse</span> AI
@@ -46,32 +48,22 @@ export const DashboardPage = () => {
         </div>
       </div>
 
-      {/* Quick Stat Metric Cards */}
+      {/* Quick Stat Metric Cards using StatCard */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <div
-              key={card.label}
-              className="bg-pitch-card border border-pitch-border rounded-xl p-5 hover:border-cricket-green/40 transition-all shadow-sm"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-400">{card.label}</span>
-                <div className={`p-2 rounded-lg bg-pitch-elevated ${card.color}`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-              </div>
-              <div className="mt-3">
-                <span className="text-2xl font-bold text-white">{card.value}</span>
-                <p className="text-xs text-gray-400 mt-1">{card.change}</p>
-              </div>
-            </div>
-          );
-        })}
+        {statCards.map((card) => (
+          <StatCard
+            key={card.label}
+            title={card.label}
+            value={card.value}
+            change={card.change}
+            icon={card.icon}
+            color={card.color}
+          />
+        ))}
       </div>
 
-      {/* Chart Section using Recharts */}
-      <div className="bg-pitch-card border border-pitch-border rounded-2xl p-6 shadow-sm">
+      {/* Chart Section using Card + Recharts */}
+      <Card variant="default" padding="md">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -110,7 +102,7 @@ export const DashboardPage = () => {
                 contentStyle={{
                   backgroundColor: '#111827',
                   borderColor: '#374151',
-                  borderRadius: '0.5rem',
+                  borderRadius: '0.75rem',
                   color: '#F9FAFB',
                   fontSize: '0.85rem',
                 }}
@@ -134,10 +126,9 @@ export const DashboardPage = () => {
             </AreaChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
 
 export default DashboardPage;
-

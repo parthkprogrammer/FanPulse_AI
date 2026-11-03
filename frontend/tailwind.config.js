@@ -13,6 +13,8 @@ export default {
           card: '#111827',
           elevated: '#1F2937',
           border: '#374151',
+          subtle: '#1E293B',
+          surface: '#151C2C',
         },
         cricket: {
           green: {
@@ -27,10 +29,17 @@ export default {
             dark: '#D97706',
           },
           live: '#EF4444',
+          blue: '#3B82F6',
+          silver: '#94A3B8',
         },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      boxShadow: {
+        'glow-green': '0 0 25px -5px rgba(16, 185, 129, 0.25)',
+        'glow-gold': '0 0 25px -5px rgba(245, 158, 11, 0.25)',
+        'card-dark': '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4)',
       },
     },
   },
