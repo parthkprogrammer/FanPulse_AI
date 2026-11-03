@@ -1,15 +1,15 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import MainLayout from '@/layouts/MainLayout';
-import AuthLayout from '@/layouts/AuthLayout';
-import DashboardPage from '@/pages/DashboardPage';
-import MatchCenterPage from '@/pages/MatchCenterPage';
-import MyTeamsPage from '@/pages/MyTeamsPage';
-import LoginPage from '@/pages/LoginPage';
-import RegisterPage from '@/pages/RegisterPage';
-import NotFoundPage from '@/pages/NotFoundPage';
+import MainLayout from './layouts/MainLayout';
+import AuthLayout from './layouts/AuthLayout';
+import DashboardPage from './pages/DashboardPage';
+import MatchCenterPage from './pages/MatchCenterPage';
+import MyTeamsPage from './pages/MyTeamsPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import NotFoundPage from './pages/NotFoundPage';
 
-export const App: React.FC = () => {
+export const App = () => {
   return (
     <Routes>
       {/* Main Application Layout */}
