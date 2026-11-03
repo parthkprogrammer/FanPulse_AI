@@ -145,6 +145,7 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signUp,
     signOut,
+    logout: signOut,
     updateProfile,
     toggleDemoAuth,
   };

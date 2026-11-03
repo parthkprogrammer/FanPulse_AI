@@ -18,8 +18,16 @@ import { useAuth } from '../context/AuthContext';
 
 export const MainLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isAuthenticated, user, logout, toggleDemoAuth } = useAuth();
+  const { isAuthenticated, user, signOut, logout, toggleDemoAuth } = useAuth();
   const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    if (signOut) {
+      signOut();
+    } else if (logout) {
+      logout();
+    }
+  };
 
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: Activity },
@@ -111,7 +119,7 @@ export const MainLayout = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={logout}
+                    onClick={handleSignOut}
                     title="Sign Out"
                     className="p-1.5 text-gray-400 hover:text-red-400"
                   >
@@ -174,7 +182,7 @@ export const MainLayout = () => {
                     variant="danger"
                     size="sm"
                     onClick={() => {
-                      logout();
+                      handleSignOut();
                       setMobileMenuOpen(false);
                     }}
                   >
