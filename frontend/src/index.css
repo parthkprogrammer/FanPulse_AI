@@ -11,6 +11,50 @@
     background-color: #0B0F19;
     color: #F9FAFB;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom Scrollbar for sports analytics tables & cards */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0B0F19;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1F2937;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #374151;
+  }
+}
+
+@layer components {
+  /* Typography Utility Styles */
+  .heading-page {
+    @apply text-2xl sm:text-3xl font-extrabold tracking-tight text-white;
+  }
+
+  .heading-section {
+    @apply text-lg sm:text-xl font-bold tracking-tight text-gray-100;
+  }
+
+  .heading-card {
+    @apply text-base font-semibold text-white;
+  }
+
+  .text-metric {
+    @apply text-2xl sm:text-3xl font-bold text-white tabular-nums;
+  }
+
+  .caption-label {
+    @apply text-xs font-semibold uppercase tracking-wider text-gray-400;
   }
 }
 
@@ -22,4 +66,3 @@
     box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.3);
   }
 }
-

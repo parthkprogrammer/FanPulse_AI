@@ -1,8 +1,9 @@
 import React from 'react';
-import { Trophy, Clock, MapPin, ChevronRight, Zap } from 'lucide-react';
+import { Trophy, MapPin } from 'lucide-react';
+import { Card, Badge } from '../components/ui';
 
 export const MatchCenterPage = () => {
-// Sample fixture mock data for UI preview
+  // Sample fixture mock data for UI preview
   const matches = [
     {
       id: 'm1',
@@ -38,23 +39,18 @@ export const MatchCenterPage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {matches.map((match) => (
-          <div
-            key={match.id}
-            className="bg-pitch-card border border-pitch-border rounded-xl p-5 hover:border-cricket-green/50 transition-all"
-          >
+          <Card key={match.id} variant="interactive" padding="sm" className="p-5">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-pitch-elevated text-gray-300">
+              <Badge variant="neutral" size="xs">
                 {match.badge}
-              </span>
-              <span
-                className={`text-xs font-bold px-2 py-0.5 rounded ${
-                  match.status === 'DEMO LIVE'
-                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                    : 'bg-pitch-elevated text-gray-400'
-                }`}
+              </Badge>
+              <Badge
+                variant={match.status === 'DEMO LIVE' ? 'warning' : 'neutral'}
+                size="xs"
+                dot={match.status === 'DEMO LIVE'}
               >
                 {match.status}
-              </span>
+              </Badge>
             </div>
 
             <h3 className="text-base font-bold text-white">{match.title}</h3>
@@ -64,7 +60,7 @@ export const MatchCenterPage = () => {
               <MapPin className="w-3.5 h-3.5" />
               <span>{match.venue}</span>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>
@@ -72,4 +68,3 @@ export const MatchCenterPage = () => {
 };
 
 export default MatchCenterPage;
-

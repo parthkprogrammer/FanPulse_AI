@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { Activity, ArrowLeft } from 'lucide-react';
+import { Card } from '../components/ui';
 
 export const AuthLayout = () => {
   return (
@@ -17,7 +18,7 @@ export const AuthLayout = () => {
       </div>
 
       {/* Auth Card Container */}
-      <div className="w-full max-w-md bg-pitch-card border border-pitch-border rounded-2xl shadow-2xl p-8">
+      <Card variant="default" padding="lg" className="w-full max-w-md shadow-2xl">
         <div className="flex flex-col items-center text-center mb-6">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cricket-green to-emerald-400 flex items-center justify-center shadow-lg shadow-cricket-green/20 mb-3">
             <Activity className="w-7 h-7 text-pitch-dark stroke-[2.5]" />
@@ -31,7 +32,7 @@ export const AuthLayout = () => {
         </div>
 
         <Outlet />
-      </div>
+      </Card>
 
       {/* Footer Note */}
       <p className="mt-8 text-center text-xs text-gray-500">

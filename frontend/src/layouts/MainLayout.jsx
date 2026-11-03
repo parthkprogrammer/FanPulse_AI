@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import { Activity, Trophy, Users, Bot, Menu, X, LogIn } from 'lucide-react';
+import { Badge, Button } from '../components/ui';
 
 export const MainLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -37,9 +38,10 @@ export const MainLayout = () => {
               </Link>
 
               {/* Demo Mode Indicator */}
-              <div className="hidden md:flex items-center gap-2 ml-4 px-2.5 py-1 rounded-full bg-pitch-elevated text-xs font-medium text-gray-300 border border-pitch-border">
-                <span className="inline-flex h-2 w-2 rounded-full bg-cricket-gold"></span>
-                <span>Frontend Demo Mode</span>
+              <div className="hidden md:flex items-center ml-4">
+                <Badge variant="gold" size="xs" dot>
+                  Demo Mode
+                </Badge>
               </div>
             </div>
 
@@ -63,16 +65,14 @@ export const MainLayout = () => {
 
             {/* Auth CTA & AI Assistant Quick Action */}
             <div className="hidden md:flex items-center gap-3">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pitch-elevated text-xs font-medium text-cricket-gold border border-cricket-gold/20">
-                <Bot className="w-3.5 h-3.5" />
-                <span>Gemini Ready</span>
-              </div>
-              <Link
-                to="/login"
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-cricket-green hover:bg-cricket-green-dark text-pitch-dark transition-all shadow-md shadow-cricket-green/20"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Sign In</span>
+              <Badge variant="gold" size="xs">
+                <Bot className="w-3 h-3 inline mr-1" />
+                Gemini Ready
+              </Badge>
+              <Link to="/login">
+                <Button variant="primary" size="sm" leftIcon={LogIn}>
+                  Sign In
+                </Button>
               </Link>
             </div>
 
