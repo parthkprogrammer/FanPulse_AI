@@ -1,132 +1,172 @@
-import React from 'react';
-import { Activity, Trophy, Users, Bot, TrendingUp, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
-import { StatCard, Card, Badge } from '../components/ui';
-
-// Sample verified match momentum data for Recharts demo
-const matchTrendData = [
-  { over: 'Ov 1-4', points: 34, projected: 30 },
-  { over: 'Ov 5-8', points: 78, projected: 65 },
-  { over: 'Ov 9-12', points: 120, projected: 110 },
-  { over: 'Ov 13-16', points: 195, projected: 160 },
-  { over: 'Ov 17-20', points: 268, projected: 220 },
-];
+  Trophy,
+  Users,
+  Bot,
+  TrendingUp,
+  AlertTriangle,
+  RefreshCw,
+  Info,
+} from 'lucide-react';
+import { dashboardService } from '../services/dashboardService';
+import {
+  FeaturedMatchBanner,
+  MatchFilterList,
+  TopPerformersWidget,
+  UserFantasySummaryWidget,
+  FantasyComparisonChart,
+  AiInsightsPreviewWidget,
+  DashboardSkeleton,
+} from '../components/dashboard';
+import { StatCard, Button, Alert, EmptyState, Badge } from '../components/ui';
 
 export const DashboardPage = () => {
-  const statCards = [
-    { label: 'Active Matches', value: '3 Matches', change: 'Sample Fixtures (Demo)', icon: Trophy, color: 'text-cricket-gold' },
-    { label: 'Fantasy Squad Points', value: '842 pts', change: 'Demo Calculation', icon: TrendingUp, color: 'text-cricket-green' },
-    { label: 'Tracked Players', value: '22 Players', change: 'Demo Roster Preview', icon: Users, color: 'text-blue-400' },
-    { label: 'AI Explanations', value: 'Ready', change: 'Gemini Assistant (Demo)', icon: Bot, color: 'text-purple-400' },
-  ];
+  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const loadDashboard = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await dashboardService.getDashboardData();
+      setData(response);
+    } catch (err) {
+      setError(err.message || 'Failed to retrieve sports telemetry feeds.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className="py-12 max-w-lg mx-auto">
+        <EmptyState
+          icon={AlertTriangle}
+          title="Telemetry Feed Error"
+          description={error}
+          action={
+            <Button
+              variant="primary"
+              size="md"
+              leftIcon={RefreshCw}
+              onClick={loadDashboard}
+            >
+              Retry Loading Feed
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="py-12 max-w-lg mx-auto">
+        <EmptyState
+          icon={Trophy}
+          title="No Cricket Fixtures Available"
+          description="There are currently no active or scheduled matches in the database. Please check back soon."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-pitch-card via-pitch-elevated to-pitch-card border border-pitch-border p-6 sm:p-8">
-        <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <Badge variant="success" size="sm" dot>
-              Cricket Fantasy Intelligence &bull; JavaScript + Supabase Stack
+      {/* Prominent Demo Data Disclosure Banner */}
+      {data.isDemoData && (
+        <Alert variant="warning" title="Verified Demo Telemetry Active">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span>{data.notice}</span>
+            <Badge variant="gold" size="xs">
+              DEMO DATA
             </Badge>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-            Welcome to <span className="text-cricket-green">FanPulse</span> AI
-          </h1>
-          <p className="mt-3 text-sm sm:text-base text-gray-300 leading-relaxed">
-            Real-time cricket statistics, deterministic fantasy point scoring, and grounded
-            AI match explanations backed by verified live telemetry.
-          </p>
-        </div>
-      </div>
+        </Alert>
+      )}
 
-      {/* Quick Stat Metric Cards using StatCard */}
+      {/* 1. Featured Match Hero Banner */}
+      <FeaturedMatchBanner match={data.featuredMatch} isDemoData={data.isDemoData} />
+
+      {/* 2. Quick Stat Metric KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map((card) => (
-          <StatCard
-            key={card.label}
-            title={card.label}
-            value={card.value}
-            change={card.change}
-            icon={card.icon}
-            color={card.color}
-          />
-        ))}
+        <StatCard
+          title="Live Fixtures"
+          value="1 Active"
+          change="IND vs AUS (3rd T20I)"
+          icon={Trophy}
+          color="text-cricket-gold"
+        />
+        <StatCard
+          title="Fantasy Squad Score"
+          value={`${data.userFantasySummary.totalPoints} pts`}
+          change={data.userFantasySummary.rankPercentile}
+          icon={TrendingUp}
+          color="text-cricket-green"
+        />
+        <StatCard
+          title="Match Performers"
+          value="3 Stars"
+          change="All Points Verified"
+          icon={Users}
+          color="text-blue-400"
+        />
+        <StatCard
+          title="AI Synthesis"
+          value="Gemini Ready"
+          change="100% Grounded Context"
+          icon={Bot}
+          color="text-purple-400"
+        />
       </div>
 
-      {/* Chart Section using Card + Recharts */}
-      <Card variant="default" padding="md">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Activity className="w-5 h-5 text-cricket-green" />
-              <span>Match Fantasy Points Trajectory (Demo Preview)</span>
-            </h2>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Sample fantasy points vs. baseline projection powered by Recharts (Demo Data)
-            </p>
-          </div>
-          <div className="flex items-center gap-4 text-xs">
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-cricket-green"></span>
-              <span className="text-gray-300">Demo Squad Score</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-gray-500"></span>
-              <span className="text-gray-400">Projected</span>
-            </div>
-          </div>
+      {/* 3. Main Dashboard 2-Column Responsive Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column (2 Cols on Desktop): Recharts Comparison & Filterable Match List */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Recharts Visualization */}
+          <FantasyComparisonChart
+            data={data.fantasyComparisonData}
+            isDemoData={data.isDemoData}
+          />
+
+          {/* Matches & Scores Filter List */}
+          <MatchFilterList
+            matches={data.recentMatches}
+            isDemoData={data.isDemoData}
+          />
         </div>
 
-        <div className="h-64 sm:h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={matchTrendData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorPoints" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0.0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.5} />
-              <XAxis dataKey="over" stroke="#9CA3AF" tick={{ fontSize: 12 }} />
-              <YAxis stroke="#9CA3AF" tick={{ fontSize: 12 }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#111827',
-                  borderColor: '#374151',
-                  borderRadius: '0.75rem',
-                  color: '#F9FAFB',
-                  fontSize: '0.85rem',
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="points"
-                stroke="#10B981"
-                strokeWidth={2.5}
-                fillOpacity={1}
-                fill="url(#colorPoints)"
-              />
-              <Area
-                type="monotone"
-                dataKey="projected"
-                stroke="#6B7280"
-                strokeWidth={1.5}
-                strokeDasharray="4 4"
-                fill="none"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+        {/* Right Column (1 Col on Desktop): Fantasy Squad Summary, AI Insights & Top Performers */}
+        <div className="space-y-6">
+          {/* User Fantasy Squad Summary */}
+          <UserFantasySummaryWidget
+            summary={data.userFantasySummary}
+            isDemoData={data.isDemoData}
+          />
+
+          {/* AI Insights Teaser Preview */}
+          <AiInsightsPreviewWidget
+            insights={data.aiInsightsPreview}
+            isDemoData={data.isDemoData}
+          />
+
+          {/* Top Player Performances */}
+          <TopPerformersWidget
+            performers={data.topPerformers}
+            isDemoData={data.isDemoData}
+          />
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
