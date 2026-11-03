@@ -122,6 +122,18 @@ export const fantasyService = {
       if (teamCodes.size < 2) {
         errors.push('Lineup must include players from both competing teams.');
       }
+
+      // Rule: Maximum 7 players allowed from a single team (BR-TEAM-02)
+      const teamCounts = {};
+      for (const player of players) {
+        if (player.teamCode) {
+          teamCounts[player.teamCode] = (teamCounts[player.teamCode] || 0) + 1;
+          if (teamCounts[player.teamCode] > 7) {
+            errors.push('Maximum 7 players allowed from a single team (BR-TEAM-02).');
+            break;
+          }
+        }
+      }
     }
 
     return {

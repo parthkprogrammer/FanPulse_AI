@@ -102,6 +102,8 @@ describe('FanPulse AI — Version-Controlled SQL Migrations & Supabase CLI', () 
       const content = readMigration('fantasy_management_schema');
       expect(content).toContain('trg_check_fantasy_team_editable');
       expect(content).toContain('save_fantasy_team_atomic');
+      expect(content).toContain("IF TG_OP = 'DELETE' THEN");
+      expect(content).toContain('RETURN OLD;');
     });
 
     it('2.7 fantasy_scoring schema defines scoring_rules and player points', () => {
@@ -164,6 +166,25 @@ describe('FanPulse AI — Version-Controlled SQL Migrations & Supabase CLI', () 
       expect(config).toContain('enabled = true');
       expect(config).toContain('[db.seed]');
       expect(config).toContain('sql_paths = ["./seed.sql"]');
+    });
+
+    it('verifies config.toml declares all 9 production Edge Functions', () => {
+      const config = fs.readFileSync(configFilePath, 'utf-8');
+      const expectedFunctions = [
+        'health-check',
+        'validate-fantasy-team',
+        'compare-fantasy-teams',
+        'calculate-fantasy-scoring',
+        'manage-fantasy-teams',
+        'manage-matches',
+        'manage-players',
+        'sync-cricket-data',
+        'ai-assistant',
+      ];
+
+      for (const fn of expectedFunctions) {
+        expect(config).toContain(`[functions.${fn}]`);
+      }
     });
   });
 });

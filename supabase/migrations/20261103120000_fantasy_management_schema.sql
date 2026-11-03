@@ -33,7 +33,11 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
 
-    RETURN NEW;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    ELSE
+        RETURN NEW;
+    END IF;
 END;
 $$;
 

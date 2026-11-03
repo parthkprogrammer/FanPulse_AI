@@ -265,3 +265,4 @@ describe('RegisterPage Component — Form Validation, API States & Accessibility
     });
   });
 });
+
