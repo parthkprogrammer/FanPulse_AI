@@ -271,4 +271,22 @@ describe('Fantasy Team Builder UI & Validation Tests', () => {
     expect(await screen.findByText(/Validation or Submission Error/i)).toBeInTheDocument();
     expect(screen.getByText(/Database RLS authorization failure/i)).toBeInTheDocument();
   });
+
+  it('provides accessibility basics: accessible pick buttons and role tab navigation', async () => {
+    renderFantasyBuilder();
+
+    await screen.findByText('Virat Kohli');
+
+    // Pick buttons have accessible names specifying player name
+    const pickKohli = screen.getByRole('button', { name: 'Pick Virat Kohli' });
+    expect(pickKohli).toBeInTheDocument();
+
+    // Role filter tab buttons are accessible
+    const allTab = screen.getByRole('button', { name: /ALL/i });
+    const batTab = screen.getByRole('button', { name: /BAT/i });
+    const bowlTab = screen.getByRole('button', { name: /BOWL/i });
+    expect(allTab).toBeInTheDocument();
+    expect(batTab).toBeInTheDocument();
+    expect(bowlTab).toBeInTheDocument();
+  });
 });
