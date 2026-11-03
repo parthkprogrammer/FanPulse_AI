@@ -18,7 +18,7 @@ import { useAuth } from '../context/AuthContext';
 
 export const MainLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isAuthenticated, user, signOut, logout, toggleDemoAuth } = useAuth();
+  const { isAuthenticated, user, isAdmin, hasRole, signOut, logout, toggleDemoAuth } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = () => {
@@ -36,7 +36,7 @@ export const MainLayout = () => {
     { name: 'AI Assistant', path: '/assistant', icon: Bot },
   ];
 
-  if (isAuthenticated && user?.role === 'ROLE_ADMIN') {
+  if (isAuthenticated && (isAdmin || hasRole?.('ADMIN') || user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN')) {
     navLinks.push({ name: 'Admin', path: '/admin', icon: ShieldCheck });
   }
 

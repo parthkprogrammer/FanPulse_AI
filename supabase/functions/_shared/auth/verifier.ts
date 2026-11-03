@@ -8,16 +8,33 @@
 import { UnauthorizedError, ForbiddenError } from '../utils/errors.ts';
 import { createCallerClient } from '../supabaseClient.ts';
 
+export type UserRole = 'USER' | 'ADMIN';
+
 export interface AuthenticatedUser {
   id: string;
   email?: string;
-  role: string;
+  role: UserRole;
+  rawRole: string;
+  displayName?: string;
   metadata?: Record<string, unknown>;
   token: string;
 }
 
 /**
- * Extracts Bearer token from the Request Authorization header
+ * Normalizes role representations across app_metadata, DB profiles, and legacy constants.
+ * Standardizes to 'USER' | 'ADMIN'.
+ */
+export function normalizeRole(role?: string | null): UserRole {
+  if (!role) return 'USER';
+  const clean = String(role).trim().toUpperCase();
+  if (clean === 'ADMIN' || clean === 'ROLE_ADMIN') {
+    return 'ADMIN';
+  }
+  return 'USER';
+}
+
+/**
+ * Extracts Bearer token from the Request Authorization header.
  */
 export function extractBearerToken(req: Request): string | null {
   const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
@@ -32,8 +49,26 @@ export function extractBearerToken(req: Request): string | null {
 }
 
 /**
- * Verifies the caller's JWT token via Supabase Auth.
- * Throws UnauthorizedError if token is absent, expired, or invalid.
+ * Enforces resource ownership security (NFR-SEC-03, NFR-SEC-04).
+ * Rejects requests if caller is not resource owner and does not hold ADMIN role.
+ */
+export function checkResourceOwnership(
+  resourceUserId: string,
+  callerUserId: string,
+  callerRole?: string | null
+): void {
+  const isOwner = resourceUserId === callerUserId;
+  const isAdmin = normalizeRole(callerRole) === 'ADMIN';
+
+  if (!isOwner && !isAdmin) {
+    throw new ForbiddenError('Access denied: you do not have permission to access or modify this resource.');
+  }
+}
+
+/**
+ * Verifies caller JWT token via Supabase Auth identity.
+ * Validates token signature, expiration, and user existence.
+ * Enforces role-based access control when requiredRole is provided.
  */
 export async function verifyAuth(
   req: Request,
@@ -49,32 +84,39 @@ export async function verifyAuth(
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
-      throw new UnauthorizedError(error?.message || 'Invalid or expired authentication token.');
+      throw new UnauthorizedError('Invalid or expired authentication session.');
     }
 
-    const role = (user.app_metadata?.role as string) || 'ROLE_USER';
+    const rawRole = (user.app_metadata?.role as string) || (user.user_metadata?.role as string) || 'USER';
+    const normalizedRole = normalizeRole(rawRole);
 
     const authUser: AuthenticatedUser = {
       id: user.id,
       email: user.email,
-      role,
+      role: normalizedRole,
+      rawRole,
+      displayName: user.user_metadata?.full_name || user.email?.split('@')[0],
       metadata: user.user_metadata,
       token,
     };
 
-    // If an elevated role is required, verify membership
-    if (requiredRole && role !== requiredRole && role !== 'ROLE_ADMIN') {
-      throw new ForbiddenError(
-        `Insufficient privileges. Required role: "${requiredRole}", current role: "${role}".`
-      );
+    // If an elevated role (e.g., ADMIN) is required, enforce RBAC
+    if (requiredRole) {
+      const requiredNormalized = normalizeRole(requiredRole);
+      if (requiredNormalized === 'ADMIN' && authUser.role !== 'ADMIN') {
+        throw new ForbiddenError(
+          `Insufficient privileges. Required role: "${requiredRole}", caller role: "${authUser.role}".`
+        );
+      }
     }
 
     return authUser;
-  } catch (err) {
+  } catch (err: unknown) {
     if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
       throw err;
     }
-    throw new UnauthorizedError('Failed to verify caller authentication token.');
+    // Prevent leaking internal error details
+    throw new UnauthorizedError('Authentication failed. Invalid or expired session credentials.');
   }
 }
 
@@ -90,4 +132,3 @@ export async function tryVerifyAuth(req: Request): Promise<AuthenticatedUser | n
     return null;
   }
 }
-

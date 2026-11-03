@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService, isSupabaseConfigured } from '../services/authService';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { authService, isSupabaseConfigured, normalizeRole } from '../services/authService';
 import { supabase } from '../services/supabaseClient';
 
 const AuthContext = createContext(null);
@@ -22,38 +22,95 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const isMockMode = !isSupabaseConfigured();
 
-  // Synchronize Supabase cloud auth state if configured
+  // Helper to persist session cache
+  const setPersistedSession = (userData, accessToken) => {
+    setUser(userData);
+    setToken(accessToken);
+    if (userData && accessToken) {
+      localStorage.setItem('fanpulse_user', JSON.stringify(userData));
+      localStorage.setItem('fanpulse_token', accessToken);
+    } else {
+      localStorage.removeItem('fanpulse_user');
+      localStorage.removeItem('fanpulse_token');
+    }
+  };
+
+  // Synchronize Supabase Cloud Auth session on mount and state changes
   useEffect(() => {
+    let mounted = true;
+
+    async function initializeAuth() {
+      if (!isSupabaseConfigured()) {
+        if (mounted) setIsLoading(false);
+        return;
+      }
+
+      try {
+        const current = await authService.getCurrentUser();
+        if (mounted) {
+          if (current) {
+            setPersistedSession(current.user, current.token);
+          } else {
+            setPersistedSession(null, null);
+          }
+        }
+      } catch (err) {
+        if (mounted) setPersistedSession(null, null);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    }
+
+    initializeAuth();
+
     if (!isSupabaseConfigured()) return;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (session) {
-          const authUser = {
-            id: session.user.id,
-            email: session.user.email,
-            displayName: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
-            role: session.user.app_metadata?.role || 'ROLE_USER',
-            isMockUser: false,
-            authMode: 'SUPABASE_CLOUD',
-          };
-          setUser(authUser);
-          setToken(session.access_token);
-          localStorage.setItem('fanpulse_user', JSON.stringify(authUser));
-          localStorage.setItem('fanpulse_token', session.access_token);
+        if (!mounted) return;
+
+        if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')) {
+          try {
+            // Retrieve fresh profile from PostgreSQL
+            let profile = null;
+            try {
+              const { data } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
+              profile = data;
+            } catch {
+              // Non-blocking fallback
+            }
+
+            const authUser = {
+              id: session.user.id,
+              email: session.user.email,
+              displayName: profile?.display_name || session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+              role: normalizeRole(profile?.role || session.user.app_metadata?.role || session.user.user_metadata?.role || 'USER'),
+              favoriteTeam: profile?.favorite_team || session.user.user_metadata?.favorite_team || 'India National Team',
+              bio: profile?.bio || session.user.user_metadata?.bio || 'Cricket fan & fantasy manager',
+              isMockUser: false,
+              authMode: 'SUPABASE_CLOUD',
+              createdAt: session.user.created_at,
+            };
+
+            setPersistedSession(authUser, session.access_token);
+          } catch {
+            // Keep existing state if fetch fails
+          }
         } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem('fanpulse_user');
-          localStorage.removeItem('fanpulse_token');
+          setPersistedSession(null, null);
         }
       }
     );
 
     return () => {
+      mounted = false;
       subscription?.unsubscribe();
     };
   }, []);
@@ -62,10 +119,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const result = await authService.signIn(credentials);
-      setUser(result.user);
-      setToken(result.token);
-      localStorage.setItem('fanpulse_user', JSON.stringify(result.user));
-      localStorage.setItem('fanpulse_token', result.token);
+      setPersistedSession(result.user, result.token);
       return result;
     } finally {
       setIsLoading(false);
@@ -77,10 +131,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const result = await authService.signUp(credentials);
       if (result.user && result.token) {
-        setUser(result.user);
-        setToken(result.token);
-        localStorage.setItem('fanpulse_user', JSON.stringify(result.user));
-        localStorage.setItem('fanpulse_token', result.token);
+        setPersistedSession(result.user, result.token);
       }
       return result;
     } finally {
@@ -92,10 +143,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       await authService.signOut();
-      setUser(null);
-      setToken(null);
-      localStorage.removeItem('fanpulse_user');
-      localStorage.removeItem('fanpulse_token');
+      setPersistedSession(null, null);
     } finally {
       setIsLoading(false);
     }
@@ -104,15 +152,31 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (profileData) => {
     setIsLoading(true);
     try {
-      const updatedFields = await authService.updateProfile(profileData);
+      const updatedFields = await authService.updateProfile(user?.id, profileData);
       const updatedUser = { ...user, ...updatedFields };
-      setUser(updatedUser);
-      localStorage.setItem('fanpulse_user', JSON.stringify(updatedUser));
+      setPersistedSession(updatedUser, token);
       return updatedUser;
     } finally {
       setIsLoading(false);
     }
   };
+
+  const refreshCurrentUser = useCallback(async () => {
+    const current = await authService.getCurrentUser();
+    if (current) {
+      setPersistedSession(current.user, current.token);
+      return current.user;
+    }
+    return null;
+  }, []);
+
+  const hasRole = useCallback((requiredRole) => {
+    if (!user) return false;
+    const userRole = normalizeRole(user.role);
+    const targetRole = normalizeRole(requiredRole);
+    if (userRole === 'ADMIN') return true; // Admins satisfy all role checks
+    return userRole === targetRole;
+  }, [user]);
 
   const toggleDemoAuth = () => {
     if (user) {
@@ -122,17 +186,14 @@ export const AuthProvider = ({ children }) => {
         id: 'mock_demo_fan',
         email: 'cricketfan@fanpulse.ai',
         displayName: 'Demo Cricket Fan',
-        role: 'ROLE_USER',
+        role: 'USER',
         favoriteTeam: 'India National Team',
         bio: 'Fantasy manager & cricket analyst',
         isMockUser: true,
         authMode: 'DEVELOPMENT_MOCK',
       };
       const mockToken = `mock_token_${Date.now()}`;
-      setUser(mockUser);
-      setToken(mockToken);
-      localStorage.setItem('fanpulse_user', JSON.stringify(mockUser));
-      localStorage.setItem('fanpulse_token', mockToken);
+      setPersistedSession(mockUser, mockToken);
     }
   };
 
@@ -140,6 +201,7 @@ export const AuthProvider = ({ children }) => {
     user,
     token,
     isAuthenticated: Boolean(token && user),
+    isAdmin: normalizeRole(user?.role) === 'ADMIN',
     isLoading,
     isMockMode,
     signIn,
@@ -147,6 +209,8 @@ export const AuthProvider = ({ children }) => {
     signOut,
     logout: signOut,
     updateProfile,
+    refreshCurrentUser,
+    hasRole,
     toggleDemoAuth,
   };
 

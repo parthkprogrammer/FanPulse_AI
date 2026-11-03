@@ -1,6 +1,7 @@
 import { handleCors } from '../_shared/cors.ts';
 import { jsonResponse, errorResponse } from '../_shared/response.ts';
 import { createCallerClient } from '../_shared/supabaseClient.ts';
+import { tryVerifyAuth, extractBearerToken } from '../_shared/auth/index.ts';
 
 interface AiAssistantRequest {
   matchId: string;
@@ -83,7 +84,20 @@ Deno.serve(async (req: Request) => {
     const body: AiAssistantRequest = await req.json().catch(() => ({}));
     const { matchId, question, conversationHistory = [] } = body;
 
-    // 2. Input Validation (AI_MODULE_DESIGN.md §9.1)
+    // 2. Authentication Verification (FR-AUTH-07, NFR-SEC-01)
+    const token = extractBearerToken(req);
+    const isProduction = Deno.env.get('ENVIRONMENT') === 'production';
+    if (isProduction && !token) {
+      return errorResponse('Authentication required to access AI Assistant (FR-AUTH-07).', 401, 'Unauthorized');
+    }
+    if (token) {
+      const authUser = await tryVerifyAuth(req);
+      if (isProduction && !authUser) {
+        return errorResponse('Invalid or expired authentication session.', 401, 'Unauthorized');
+      }
+    }
+
+    // 3. Input Validation (AI_MODULE_DESIGN.md §9.1)
     if (!matchId) {
       return errorResponse('matchId is required.', 400, 'ValidationError');
     }
