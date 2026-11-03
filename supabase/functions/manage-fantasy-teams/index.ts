@@ -345,7 +345,7 @@ Deno.serve(async (req: Request) => {
 
       const { data: team, error: teamErr } = await supabase
         .from('fantasy_teams')
-        .select('*, players:fantasy_team_players(player_id)')
+        .select('*, match:matches(status), players:fantasy_team_players(player_id)')
         .eq('id', teamId)
         .single();
 
@@ -355,6 +355,12 @@ Deno.serve(async (req: Request) => {
 
       if (team.user_id !== authUser.id && authUser.role !== 'ADMIN') {
         throw new ForbiddenError('You can only modify fantasy teams belonging to your account.');
+      }
+
+      if (team.match && ['LIVE', 'IN_PROGRESS', 'COMPLETED', 'ABANDONED'].includes(team.match.status)) {
+        throw new ForbiddenError(
+          `Cannot modify fantasy team roles: Match is already "${team.match.status}". Lineups are locked (BR-TEAM-06).`
+        );
       }
 
       const playerIds = (team.players || []).map((p: { player_id: string }) => p.player_id);
