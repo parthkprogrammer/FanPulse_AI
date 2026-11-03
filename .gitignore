@@ -78,6 +78,12 @@ postgres_data/
 *.sqlite3
 *.db
 
+# Supabase Local CLI & Secrets
+supabase/.temp/
+supabase/.branches/
+supabase/.env.local
+supabase/.env.*.local
+
 # Logs & Temporary Files
 logs/
 *.log
