@@ -10,7 +10,7 @@ export const AdminDashboardPage = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="gold" size="xs">Admin Console</Badge>
-            <Badge variant="success" size="xs">ROLE_ADMIN</Badge>
+            <Badge variant="success" size="xs">ADMIN</Badge>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-2">
             <ShieldCheck className="w-7 h-7 text-cricket-green" />

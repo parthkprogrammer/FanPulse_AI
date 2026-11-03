@@ -7,7 +7,7 @@
  * - SUPABASE_SERVICE_ROLE_KEY: Privileged service role key (bypasses RLS)
  */
 
-import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2.46.1';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Creates a Supabase client that acts in the context of the calling user.

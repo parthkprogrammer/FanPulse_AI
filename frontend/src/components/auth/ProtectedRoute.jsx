@@ -1,12 +1,11 @@
 import React from 'react';
-import { Navigate, useLocation, Outlet } from 'react-router-dom';
+import { Navigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Spinner, Alert, Card, Button } from '../ui';
+import { Spinner, Card, Button } from '../ui';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 export const ProtectedRoute = ({ requiredRole, children }) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, hasRole } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -23,8 +22,8 @@ export const ProtectedRoute = ({ requiredRole, children }) => {
     return <Navigate to={`/login?returnUrl=${returnUrl}`} state={{ from: location }} replace />;
   }
 
-  // Role check: if specific role is required (e.g. ROLE_ADMIN)
-  if (requiredRole && user?.role !== requiredRole) {
+  // Role check: if specific role is required (e.g., ADMIN or ROLE_ADMIN)
+  if (requiredRole && !hasRole(requiredRole)) {
     return (
       <div className="max-w-xl mx-auto py-12 px-4">
         <Card variant="default" padding="lg" className="border-red-500/30">
@@ -34,7 +33,7 @@ export const ProtectedRoute = ({ requiredRole, children }) => {
             </div>
             <h2 className="text-xl font-bold text-white">Access Restricted</h2>
             <p className="text-xs sm:text-sm text-gray-400">
-              This administrative area requires elevated credentials ({requiredRole}). Your current role is {user?.role || 'ROLE_USER'}.
+              This administrative area requires elevated credentials ({requiredRole}). Your current role is {user?.role || 'USER'}.
             </p>
             <div className="pt-2">
               <Link to="/dashboard">

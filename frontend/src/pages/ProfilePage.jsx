@@ -81,7 +81,7 @@ export const ProfilePage = () => {
                   {user?.isMockUser ? 'Demo Member' : 'Verified Member'}
                 </Badge>
                 <Badge variant="gold" size="xs">
-                  {user?.role || 'ROLE_USER'}
+                  {user?.role || 'USER'}
                 </Badge>
                 <Badge variant="neutral" size="xs">
                   {user?.authMode || 'LOCAL_MOCK'}
