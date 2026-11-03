@@ -1,98 +1,140 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, UserPlus } from 'lucide-react';
-import { supabase } from '../services/supabaseClient';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Mail, Lock, User, UserPlus, Info, CheckCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { registerSchema } from '../utils/validationSchemas';
 import { Input, Button, Alert } from '../components/ui';
 
 export const RegisterPage = () => {
   const navigate = useNavigate();
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const { signUp, isMockMode } = useAuth();
+  const [serverError, setServerError] = useState(null);
+  const [successNotice, setSuccessNotice] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      fullName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  const onSubmit = async (data) => {
+    setServerError(null);
+    setSuccessNotice(null);
 
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-        },
+      const result = await signUp({
+        email: data.email,
+        password: data.password,
+        fullName: data.fullName,
       });
 
-      if (signUpError) {
-        throw signUpError;
+      if (result.requiresEmailConfirmation) {
+        setSuccessNotice('Registration successful! Please check your email for confirmation link.');
+      } else {
+        setSuccessNotice('Account created successfully! Redirecting...');
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
       }
-
-      navigate('/');
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
-    } finally {
-      setLoading(false);
+      setServerError(err.message || 'Registration failed. Please try again.');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <Alert variant="error" onClose={() => setError(null)}>
-          {error}
+    <div className="space-y-4">
+      {/* Explicit Mock Mode Disclosure */}
+      {isMockMode && (
+        <div className="p-3 rounded-xl bg-pitch-elevated border border-cricket-gold/30 text-xs text-gray-300 space-y-1">
+          <div className="flex items-center gap-1.5 font-bold text-cricket-gold">
+            <Info className="w-3.5 h-3.5" />
+            <span>Development Mock Mode</span>
+          </div>
+          <p className="text-[11px] text-gray-400">
+            Cloud Supabase credentials not linked. Registering will initialize a demo user without creating a remote database record.
+          </p>
+        </div>
+      )}
+
+      {serverError && (
+        <Alert variant="error" onClose={() => setServerError(null)}>
+          {serverError}
         </Alert>
       )}
 
-      <Input
-        label="Full Name"
-        type="text"
-        required
-        leftIcon={User}
-        value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
-        placeholder="Virat Sharma"
-        autoComplete="name"
-      />
+      {successNotice && (
+        <Alert variant="success" onClose={() => setSuccessNotice(null)}>
+          {successNotice}
+        </Alert>
+      )}
 
-      <Input
-        label="Email Address"
-        type="email"
-        required
-        leftIcon={Mail}
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="fan@fanpulse.ai"
-        autoComplete="email"
-      />
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <Input
+          label="Full Name"
+          type="text"
+          required
+          leftIcon={User}
+          placeholder="Virat Sharma"
+          autoComplete="name"
+          error={errors.fullName?.message}
+          {...register('fullName')}
+        />
 
-      <Input
-        label="Password"
-        type="password"
-        required
-        minLength={6}
-        leftIcon={Lock}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Minimum 6 characters"
-        autoComplete="new-password"
-        helperText="Password must be at least 6 characters long."
-      />
+        <Input
+          label="Email Address"
+          type="email"
+          required
+          leftIcon={Mail}
+          placeholder="fan@fanpulse.ai"
+          autoComplete="email"
+          error={errors.email?.message}
+          {...register('email')}
+        />
 
-      <Button
-        type="submit"
-        variant="primary"
-        size="md"
-        isLoading={loading}
-        leftIcon={UserPlus}
-        className="w-full mt-2"
-      >
-        Create Account
-      </Button>
+        <Input
+          label="Password"
+          type="password"
+          required
+          leftIcon={Lock}
+          placeholder="Minimum 8 chars (A-z, 0-9)"
+          autoComplete="new-password"
+          error={errors.password?.message}
+          helperText="Must be 8+ chars with uppercase, lowercase, and a number."
+          {...register('password')}
+        />
+
+        <Input
+          label="Confirm Password"
+          type="password"
+          required
+          leftIcon={Lock}
+          placeholder="Re-enter password"
+          autoComplete="new-password"
+          error={errors.confirmPassword?.message}
+          {...register('confirmPassword')}
+        />
+
+        <Button
+          type="submit"
+          variant="primary"
+          size="md"
+          isLoading={isSubmitting}
+          leftIcon={UserPlus}
+          className="w-full mt-2"
+        >
+          Create Account
+        </Button>
+      </form>
 
       <div className="text-center pt-3 border-t border-pitch-border">
         <p className="text-xs text-gray-400">
@@ -102,7 +144,7 @@ export const RegisterPage = () => {
           </Link>
         </p>
       </div>
-    </form>
+    </div>
   );
 };
 
