@@ -87,14 +87,36 @@ export async function verifyAuth(
       throw new UnauthorizedError('Invalid or expired authentication session.');
     }
 
-    const rawRole = (user.app_metadata?.role as string) || (user.user_metadata?.role as string) || 'USER';
-    const normalizedRole = normalizeRole(rawRole);
+    // Authoritative Role Resolution (NFR-SEC-04):
+    // 1. Check tamper-proof app_metadata claim (managed strictly by server/admin)
+    let rawRole = (user.app_metadata?.role as string) || '';
+
+    // 2. If app_metadata is missing role, query authoritative public.profiles table
+    // (Protected by trg_enforce_profile_role_security which blocks self-escalation)
+    if (!rawRole) {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profile?.role) {
+          rawRole = profile.role;
+        }
+      } catch {
+        // Fallback safely defaults to USER
+      }
+    }
+
+    // 3. User metadata (user.user_metadata) is NEVER trusted for RBAC decisions
+    const normalizedRole = normalizeRole(rawRole || 'USER');
 
     const authUser: AuthenticatedUser = {
       id: user.id,
       email: user.email,
       role: normalizedRole,
-      rawRole,
+      rawRole: rawRole || 'USER',
       displayName: user.user_metadata?.full_name || user.email?.split('@')[0],
       metadata: user.user_metadata,
       token,

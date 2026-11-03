@@ -97,7 +97,7 @@ export const authService = {
       }
 
       const authoritativeRole = normalizeRole(
-        profile?.role || data.user.app_metadata?.role || data.user.user_metadata?.role || 'USER'
+        profile?.role || data.user.app_metadata?.role || 'USER'
       );
 
       const user = {
@@ -260,7 +260,7 @@ export const authService = {
         id: session.user.id,
         email: session.user.email,
         displayName: profile?.display_name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
-        role: normalizeRole(profile?.role || session.user.app_metadata?.role || session.user.user_metadata?.role || 'USER'),
+        role: normalizeRole(profile?.role || session.user.app_metadata?.role || 'USER'),
         favoriteTeam: profile?.favorite_team || session.user.user_metadata?.favorite_team || 'India National Team',
         bio: profile?.bio || session.user.user_metadata?.bio || 'Cricket fan & fantasy manager',
         isMockUser: false,

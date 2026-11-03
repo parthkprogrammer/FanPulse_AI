@@ -369,3 +369,4 @@ CREATE POLICY "Users can view messages in own conversations"
               AND (c.user_id = (SELECT auth.uid()) OR public.is_admin())
         )
     );
+

@@ -430,3 +430,4 @@ LIMIT 10;
 3. **Set-Based Procedures**: Refactored `save_fantasy_team_atomic` and `save_team_fantasy_points_atomic` from row-by-row procedural loops into set-based batch operations.
 4. **RLS Hardening**: Enforced `(SELECT auth.uid())` InitPlan evaluation and purged broken references to non-existent tables.
 5. **No Measurement Fabrication**: Fully transparent documentation combining relational theory, PostgreSQL cost models, and executable benchmark harnesses.
+
