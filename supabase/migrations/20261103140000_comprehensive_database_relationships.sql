@@ -221,3 +221,4 @@ DROP TRIGGER IF EXISTS trg_scoring_rules_updated_at ON public.scoring_rules;
 CREATE TRIGGER trg_scoring_rules_updated_at
 BEFORE UPDATE ON public.scoring_rules
 FOR EACH ROW EXECUTE FUNCTION public.set_updated_at_timestamp();
+
