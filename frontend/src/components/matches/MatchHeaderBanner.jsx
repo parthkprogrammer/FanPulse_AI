@@ -73,7 +73,7 @@ export const MatchHeaderBanner = ({ match }) => {
                 Ask AI Insights
               </Button>
             </Link>
-            <Link to="/fantasy/create">
+            <Link to={`/fantasy/create?matchId=${match.id}`}>
               <Button variant="secondary" size="sm" leftIcon={Shield}>
                 Build Fantasy Squad
               </Button>

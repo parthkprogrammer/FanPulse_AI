@@ -128,7 +128,7 @@ export const MatchCard = ({ match }) => {
             Match Center
           </Button>
         </Link>
-        <Link to="/fantasy/create">
+        <Link to={`/fantasy/create?matchId=${match.id}`}>
           <Button variant="ghost" size="sm" className="text-xs" leftIcon={Shield}>
             Draft Squad
           </Button>

@@ -94,7 +94,7 @@ export const FeaturedMatchBanner = ({ match, isDemoData = true }) => {
               </Button>
             </Link>
 
-            <Link to="/fantasy/create">
+            <Link to={`/fantasy/create?matchId=${match.id}`}>
               <Button variant="secondary" size="sm" leftIcon={Shield}>
                 Draft Squad
               </Button>
