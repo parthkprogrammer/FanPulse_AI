@@ -1,156 +1,250 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Trophy, ArrowLeft, MapPin, Calendar, Clock, Activity, Users, Shield } from 'lucide-react';
-import { Card, Badge, Button, StatCard } from '../components/ui';
+import { ArrowLeft, AlertTriangle, RefreshCw, Radio, Table, Activity } from 'lucide-react';
+import { Card, Badge, Button, Alert, EmptyState, Skeleton, SkeletonTable } from '../components/ui';
+import {
+  MatchHeaderBanner,
+  InningsTabs,
+  ScorecardTable,
+  BallTimeline,
+  RecentEventsWidget,
+} from '../components/matches';
+import { matchService } from '../services/matchService';
 
 export const MatchDetailPage = () => {
   const { matchId } = useParams();
 
-  return (
-    <div className="space-y-6">
-      {/* Navigation Breadcrumb */}
-      <div>
+  const [match, setMatch] = useState(null);
+  const [scorecard, setScorecard] = useState(null);
+  const [ballEvents, setBallEvents] = useState([]);
+  const [recentEvents, setRecentEvents] = useState([]);
+
+  const [activeTab, setActiveTab] = useState('scorecard'); // 'scorecard', 'timeline', 'events'
+  const [activeInningsNumber, setActiveInningsNumber] = useState(1);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isNotFound, setIsNotFound] = useState(false);
+
+  const loadMatchData = useCallback(async ({ simulateError = false } = {}) => {
+    setIsLoading(true);
+    setError(null);
+    setIsNotFound(false);
+
+    try {
+      const matchData = await matchService.getMatchById(matchId, { simulateError });
+      if (!matchData) {
+        setIsNotFound(true);
+        setIsLoading(false);
+        return;
+      }
+
+      setMatch(matchData);
+
+      // Default active innings to match's current innings or 1
+      const defaultInnings = matchData.currentInnings || 1;
+      setActiveInningsNumber(defaultInnings);
+
+      // Load scorecard, ball events, and recent highlights in parallel
+      const [scorecardData, ballEventsData, highlightsData] = await Promise.all([
+        matchService.getMatchScorecard(matchId),
+        matchService.getMatchBallEvents(matchId, defaultInnings),
+        matchService.getRecentEvents(matchId),
+      ]);
+
+      setScorecard(scorecardData);
+      setBallEvents(ballEventsData?.events || []);
+      setRecentEvents(highlightsData?.events || []);
+    } catch (err) {
+      setError(err.message || 'Failed to retrieve match details and scorecard.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [matchId]);
+
+  useEffect(() => {
+    loadMatchData();
+  }, [loadMatchData]);
+
+  // Handle Invalid Match ID
+  if (!isLoading && isNotFound) {
+    return (
+      <div className="space-y-6">
         <Link to="/matches">
-          <Button variant="ghost" size="sm" leftIcon={ArrowLeft} className="-ml-2">
+          <Button variant="ghost" size="sm" leftIcon={ArrowLeft} className="-ml-2 text-xs">
             Back to Match Center
           </Button>
         </Link>
-      </div>
-
-      {/* Match Header Hero Card */}
-      <Card variant="default" padding="lg" className="border-cricket-green/30">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-pitch-border">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Badge variant="live" size="xs" dot>Demo Live</Badge>
-              <Badge variant="neutral" size="xs">T20 International</Badge>
-              <span className="text-xs text-gray-500">ID: {matchId}</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
-              India <span className="text-gray-400 font-normal">vs</span> Australia
-            </h1>
-            <p className="text-xs sm:text-sm text-cricket-green font-semibold mt-1">
-              IND 184/4 (18.2 ov) &bull; AUS 178/8 (20.0 ov) &bull; IND need 5 runs in 10 balls
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link to="/assistant">
-              <Button variant="gold" size="sm" leftIcon={Activity}>
-                Ask AI Insights
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 text-xs text-gray-400">
-          <div className="flex items-center gap-1.5">
-            <MapPin className="w-4 h-4 text-gray-500" />
-            <span>Melbourne Cricket Ground (MCG)</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-4 h-4 text-gray-500" />
-            <span>Today, 19:00 Local</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Trophy className="w-4 h-4 text-gray-500" />
-            <span>3rd T20I of 5-Match Series</span>
-          </div>
-        </div>
-      </Card>
-
-      {/* Match Stats & Scorecard Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Live Scorecard Preview */}
-        <div className="lg:col-span-2 space-y-4">
-          <Card variant="default" padding="md">
-            <Card.Header>
-              <Card.Title>Live Batting & Bowling Telemetry (Demo)</Card.Title>
-              <Card.Description>Verified ball-by-ball match feed</Card.Description>
-            </Card.Header>
-            <Card.Content>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-pitch-elevated text-gray-400 uppercase font-semibold">
-                    <tr>
-                      <th className="py-2.5 px-3 rounded-l-lg">Batter</th>
-                      <th className="py-2.5 px-2 text-right">R</th>
-                      <th className="py-2.5 px-2 text-right">B</th>
-                      <th className="py-2.5 px-2 text-right">4s</th>
-                      <th className="py-2.5 px-2 text-right">6s</th>
-                      <th className="py-2.5 px-3 text-right rounded-r-lg">SR</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-pitch-border text-gray-300">
-                    <tr className="hover:bg-pitch-elevated/40">
-                      <td className="py-2.5 px-3 font-semibold text-white">
-                        <Link to="/players/p-virat-k" className="hover:text-cricket-green">
-                          V. Kohli *
-                        </Link>
-                      </td>
-                      <td className="py-2.5 px-2 text-right font-bold text-cricket-green">74</td>
-                      <td className="py-2.5 px-2 text-right">48</td>
-                      <td className="py-2.5 px-2 text-right">6</td>
-                      <td className="py-2.5 px-2 text-right">2</td>
-                      <td className="py-2.5 px-3 text-right">154.2</td>
-                    </tr>
-                    <tr className="hover:bg-pitch-elevated/40">
-                      <td className="py-2.5 px-3 font-semibold text-white">
-                        <Link to="/players/p-hardik-p" className="hover:text-cricket-green">
-                          H. Pandya
-                        </Link>
-                      </td>
-                      <td className="py-2.5 px-2 text-right font-bold text-cricket-green">38</td>
-                      <td className="py-2.5 px-2 text-right">19</td>
-                      <td className="py-2.5 px-2 text-right">3</td>
-                      <td className="py-2.5 px-2 text-right">3</td>
-                      <td className="py-2.5 px-3 text-right">200.0</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </Card.Content>
-          </Card>
-        </div>
-
-        {/* Fantasy Impact Sidebar */}
-        <div className="space-y-4">
-          <Card variant="default" padding="md">
-            <Card.Header>
-              <Card.Title>Fantasy Top Performers</Card.Title>
-              <Card.Description>Match points calculated deterministically</Card.Description>
-            </Card.Header>
-            <Card.Content className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-pitch-elevated">
-                <div>
-                  <Link to="/players/p-virat-k" className="text-xs font-bold text-white hover:text-cricket-green">
-                    V. Kohli (IND)
-                  </Link>
-                  <p className="text-[11px] text-gray-400">74 runs, 1 catch</p>
-                </div>
-                <Badge variant="gold" size="xs">112 pts</Badge>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-pitch-elevated">
-                <div>
-                  <Link to="/players/p-jasprit-b" className="text-xs font-bold text-white hover:text-cricket-green">
-                    J. Bumrah (IND)
-                  </Link>
-                  <p className="text-[11px] text-gray-400">3/24 (4.0 ov)</p>
-                </div>
-                <Badge variant="gold" size="xs">98 pts</Badge>
-              </div>
-            </Card.Content>
-            <Card.Footer>
-              <Link to="/fantasy/create" className="w-full">
-                <Button variant="secondary" size="sm" className="w-full">
-                  Build Fantasy Squad
+        <Card variant="default" padding="lg" className="border-pitch-border my-6">
+          <EmptyState
+            icon={AlertTriangle}
+            title="Match Not Found"
+            description={`The cricket fixture with identifier "${matchId}" could not be located in our database or live provider feeds.`}
+            action={
+              <Link to="/matches">
+                <Button variant="secondary" size="sm">
+                  Return to Match Center
                 </Button>
               </Link>
-            </Card.Footer>
-          </Card>
-        </div>
+            }
+          />
+        </Card>
       </div>
+    );
+  }
+
+  // Handle API Error
+  if (!isLoading && error) {
+    return (
+      <div className="space-y-6">
+        <Link to="/matches">
+          <Button variant="ghost" size="sm" leftIcon={ArrowLeft} className="-ml-2 text-xs">
+            Back to Match Center
+          </Button>
+        </Link>
+        <Alert variant="danger" title="Match Telemetry Unavailable" icon={AlertTriangle}>
+          <div className="space-y-3">
+            <p className="text-xs">{error}</p>
+            <Button
+              variant="secondary"
+              size="xs"
+              onClick={() => loadMatchData()}
+              leftIcon={RefreshCw}
+            >
+              Retry Loading Match
+            </Button>
+          </div>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Handle Shimmer Loading Skeleton
+  if (isLoading || !match) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="h-48 rounded-2xl bg-pitch-card border border-pitch-border p-6 flex flex-col justify-between">
+          <div className="h-6 w-48 bg-pitch-surface rounded" />
+          <div className="space-y-2">
+            <div className="h-8 w-80 bg-pitch-surface rounded" />
+            <div className="h-4 w-60 bg-pitch-surface rounded" />
+          </div>
+          <div className="h-5 w-40 bg-pitch-surface rounded" />
+        </div>
+
+        {/* Tab switcher skeleton */}
+        <div className="h-10 w-96 bg-pitch-surface rounded-xl" />
+
+        {/* Table skeleton */}
+        <SkeletonTable rows={6} columns={6} />
+      </div>
+    );
+  }
+
+  // Select active innings object for the scorecard
+  const currentInningsData =
+    scorecard?.innings?.find((inn) => inn.inningsNumber === activeInningsNumber) ||
+    scorecard?.innings?.[0];
+
+  return (
+    <div className="space-y-6">
+      {/* Match Header Banner */}
+      <MatchHeaderBanner match={match} />
+
+      {/* Sub-Navigation Tabs */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-pitch-border pb-2">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab('scorecard')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+              activeTab === 'scorecard'
+                ? 'bg-cricket-gold text-pitch-background shadow-md shadow-cricket-gold/10'
+                : 'bg-pitch-surface text-gray-400 hover:text-white border border-pitch-border'
+            }`}
+          >
+            <Table className="w-4 h-4" />
+            <span>Full Scorecard</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('timeline')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+              activeTab === 'timeline'
+                ? 'bg-cricket-gold text-pitch-background shadow-md shadow-cricket-gold/10'
+                : 'bg-pitch-surface text-gray-400 hover:text-white border border-pitch-border'
+            }`}
+          >
+            <Radio className="w-4 h-4" />
+            <span>Ball-by-Ball Timeline</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('events')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+              activeTab === 'events'
+                ? 'bg-cricket-gold text-pitch-background shadow-md shadow-cricket-gold/10'
+                : 'bg-pitch-surface text-gray-400 hover:text-white border border-pitch-border'
+            }`}
+          >
+            <Activity className="w-4 h-4" />
+            <span>Key Moments</span>
+          </button>
+        </div>
+
+        <Button
+          variant="ghost"
+          size="xs"
+          onClick={() => loadMatchData()}
+          leftIcon={RefreshCw}
+          className="text-xs text-gray-400 hover:text-white"
+        >
+          Refresh Live Feed
+        </Button>
+      </div>
+
+      {/* Main Tab Views */}
+      {activeTab === 'scorecard' && (
+        <div className="space-y-6">
+          {scorecard?.innings && scorecard.innings.length > 0 ? (
+            <>
+              {/* Innings Switcher Tabs */}
+              <InningsTabs
+                inningsList={scorecard.innings}
+                activeInningsNumber={activeInningsNumber}
+                onSelectInnings={(num) => setActiveInningsNumber(num)}
+              />
+
+              {/* Batting and Bowling Scorecard */}
+              <ScorecardTable innings={currentInningsData} />
+            </>
+          ) : (
+            <Card variant="default" padding="lg" className="text-center py-10">
+              <p className="text-sm font-semibold text-white">Scorecard Not Available</p>
+              <p className="text-xs text-gray-400 mt-1">
+                This fixture is scheduled. Official team lineups and scorecard data will be updated upon coin toss.
+              </p>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'timeline' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <BallTimeline events={ballEvents} />
+          </div>
+          <div className="space-y-6">
+            <RecentEventsWidget events={recentEvents} />
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'events' && (
+        <div className="max-w-3xl">
+          <RecentEventsWidget events={recentEvents} />
+        </div>
+      )}
     </div>
   );
 };
