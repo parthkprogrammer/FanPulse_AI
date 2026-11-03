@@ -197,3 +197,4 @@ dist/assets/index-ZGN63IZt.js   1,207.62 kB │ gzip: 335.82 kB
    - `SUPABASE_SERVICE_ROLE_KEY`: Reserved for backend admin functions.
 5. [x] Build frontend assets: `npm run build` in `frontend/`.
 6. [x] Deploy frontend to CDN / edge hosting (Vercel, Netlify, or Cloudflare Pages).
+
