@@ -3,6 +3,7 @@
  *
  * Conforms to:
  * - AI_MODULE_DESIGN.md (§1 to §14)
+ * - docs/AI_PROMPTS.md (5 Core Reusable Templates)
  * - BR-AI-01 (Strict Grounding & Zero Numerical Hallucination)
  * - BR-AI-02 (No Gambling, Odds, or Match Predictions)
  * - NFR-SEC-01 (Server-Side Credential Secrecy)
@@ -13,6 +14,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   validateUserQuestion,
   buildPromptPayload,
+  buildMatchSituationPrompt,
+  buildPlayerPerformancePrompt,
+  buildFantasyTeamPerformancePrompt,
+  buildMatchSummaryPrompt,
+  buildTurningPointPrompt,
   BASE_SYSTEM_INSTRUCTION,
   DISALLOWED_INJECTION_PHRASES,
 } from '../../../supabase/functions/_shared/ai/promptTemplates';
@@ -41,9 +47,33 @@ describe('FanPulse AI — Gemini API Match Assistant Subsystem', () => {
   });
 
   // =========================================================================
-  // 1. PROMPT TEMPLATE MANAGEMENT & INPUT DEFENSE (AI_MODULE_DESIGN.md §8, §9)
+  // 1. SYSTEM INSTRUCTION & GROUNDING GUARDRAILS (docs/AI_PROMPTS.md §2)
   // =========================================================================
-  describe('1. Prompt Template Management & Input Defense', () => {
+  describe('1. Base System Instruction & Grounding Guardrails', () => {
+    it('defines objective cricket analyst persona with negative constraints', () => {
+      expect(BASE_SYSTEM_INSTRUCTION).toContain('You are FanPulse AI, an expert, objective, and engaging cricket analyst.');
+      expect(BASE_SYSTEM_INSTRUCTION).toContain('STRICT DATA GROUNDING');
+      expect(BASE_SYSTEM_INSTRUCTION).toContain('DISTINGUISH FACTS FROM INTERPRETATIONS');
+      expect(BASE_SYSTEM_INSTRUCTION).toContain('HANDLE MISSING DATA EXPLICITLY');
+      expect(BASE_SYSTEM_INSTRUCTION).toContain('NO GUARANTEED PREDICTIONS');
+      expect(BASE_SYSTEM_INSTRUCTION).toContain('NO BETTING OR FINANCIAL ADVICE');
+      expect(BASE_SYSTEM_INSTRUCTION).toContain('FANTASY ROLE CLARITY');
+    });
+
+    it('explicitly mandates distinguishing verified facts from interpretations', () => {
+      expect(BASE_SYSTEM_INSTRUCTION).toContain('State verified numbers and events as definitive facts');
+      expect(BASE_SYSTEM_INSTRUCTION).toContain('Frame tactical evaluations or game momentum as analytical observations');
+    });
+
+    it('strictly instructs the assistant to handle missing telemetry without hallucinating', () => {
+      expect(BASE_SYSTEM_INSTRUCTION).toContain('explicitly explain that this information is not recorded in the match telemetry rather than guessing or fabricating');
+    });
+  });
+
+  // =========================================================================
+  // 2. INPUT DEFENSE & SANITIZATION (AI_MODULE_DESIGN.md §9)
+  // =========================================================================
+  describe('2. Input Defense & Prompt Injection Prevention', () => {
     it('accepts valid, well-formed cricket queries within 250 characters', () => {
       const q = 'Explain the death overs acceleration by Virat Kohli';
       const result = validateUserQuestion(q);
@@ -73,46 +103,117 @@ describe('FanPulse AI — Gemini API Match Assistant Subsystem', () => {
         expect(result.error).toContain('disallowed instructions');
       }
     });
+  });
 
-    it('constructs grounded prompt payload injecting structured match JSON and boundary delimiters', () => {
-      const matchCtx = VERIFIED_SAMPLE_CONTEXTS['m-ind-aus-t20'];
-      const prompt = buildPromptPayload(
-        'MATCH_EXPLANATION',
+  // =========================================================================
+  // 3. THE 5 CORE REUSABLE PROMPT TEMPLATES (docs/AI_PROMPTS.md §3)
+  // =========================================================================
+  describe('3. Reusable Prompt Templates for 5 Core Capabilities', () => {
+    const matchCtx = VERIFIED_SAMPLE_CONTEXTS['m-ind-aus-t20'];
+
+    it('Template 1: buildMatchSituationPrompt formats current state, tactical interpretation, and equation', () => {
+      const prompt = buildMatchSituationPrompt(
         matchCtx,
-        'Explain the second innings chase equation',
-        [{ role: 'user', text: 'Who won the toss?' }, { role: 'assistant', text: 'Australia elected to field.' }]
+        'Explain current run rate equation',
+        [{ role: 'user', text: 'Who won toss?' }, { role: 'assistant', text: 'Australia elected to field.' }]
       );
 
       expect(prompt).toContain('[MATCH_DATA]');
-      expect(prompt).toContain('"id": "m-ind-aus-t20"');
-      expect(prompt).toContain('India need 5 runs in 10 balls');
-      expect(prompt).toContain('[CONVERSATION_HISTORY]');
-      expect(prompt).toContain('User: Who won the toss?');
-      expect(prompt).toContain('Assistant: Australia elected to field.');
-      expect(prompt).toContain('[USER_QUESTION]');
-      expect(prompt).toContain('"""Explain the second innings chase equation"""');
+      expect(prompt).toContain('[CAPABILITY_OBJECTIVE: MATCH_SITUATION]');
+      expect(prompt).toContain('VERIFIED CURRENT STATE (Facts)');
+      expect(prompt).toContain('TACTICAL CONTEXT (Interpretation)');
+      expect(prompt).toContain('GROUNDING & UNCERTAINTY');
+      expect(prompt).toContain('User: Who won toss?');
+      expect(prompt).toContain('"""Explain current run rate equation"""');
     });
 
-    it('formats specialized objectives for different capabilities (KEY_MOMENTS, PLAYER_PERFORMANCE, FANTASY_PERFORMANCE)', () => {
-      const matchCtx = VERIFIED_SAMPLE_CONTEXTS['m-ind-aus-t20'];
+    it('Template 2: buildPlayerPerformancePrompt injects target player stats, quantitative vs tactical impact', () => {
+      const playerStats = {
+        player: 'Jasprit Bumrah',
+        bowling: { overs: '4.0', maidens: 1, runsConceded: 24, wickets: 3, economyRate: 6.0 },
+      };
 
-      const turningPointsPrompt = buildPromptPayload('KEY_MOMENTS', matchCtx, 'Key turning points');
-      expect(turningPointsPrompt).toContain('Analyze the key turning points of this match');
-      expect(turningPointsPrompt).toContain('up to 3 distinct, numbered pivotal moments');
+      const prompt = buildPlayerPerformancePrompt(
+        matchCtx,
+        'Explain Bumrah bowling spell',
+        playerStats
+      );
 
-      const playerPrompt = buildPromptPayload('PLAYER_PERFORMANCE', matchCtx, 'Explain Jasprit Bumrah');
-      expect(playerPrompt).toContain("Explain the selected player's performance in this match in 2 concise paragraphs");
+      expect(prompt).toContain('[MATCH_DATA]');
+      expect(prompt).toContain('[TARGET_PLAYER_DATA]');
+      expect(prompt).toContain('"player": "Jasprit Bumrah"');
+      expect(prompt).toContain('[CAPABILITY_OBJECTIVE: PLAYER_PERFORMANCE]');
+      expect(prompt).toContain('QUANTITATIVE TELEMETRY (Facts)');
+      expect(prompt).toContain('TACTICAL IMPACT (Interpretation)');
+      expect(prompt).toContain('BOUNDARIES & UNCERTAINTY');
+      expect(prompt).toContain('"""Explain Bumrah bowling spell"""');
+    });
 
-      const fantasyPrompt = buildPromptPayload('FANTASY_PERFORMANCE', matchCtx, 'Why did my team score 412 points?');
-      expect(fantasyPrompt).toContain('Captain and Vice-Captain selections');
-      expect(fantasyPrompt).toContain('top individual differential contributors');
+    it('Template 3: buildFantasyTeamPerformancePrompt breaks down captaincy multipliers and differentials', () => {
+      const fantasyData = {
+        teamName: 'Power XI',
+        totalPoints: 380,
+        captain: { name: 'Virat Kohli', multiplier: 2.0, points: 224 },
+        viceCaptain: { name: 'Jasprit Bumrah', multiplier: 1.5, points: 147 },
+      };
+
+      const prompt = buildFantasyTeamPerformancePrompt(
+        matchCtx,
+        'Why did my team score 380 points?',
+        fantasyData
+      );
+
+      expect(prompt).toContain('[MATCH_DATA]');
+      expect(prompt).toContain('[FANTASY_TEAM_DATA]');
+      expect(prompt).toContain('"teamName": "Power XI"');
+      expect(prompt).toContain('[CAPABILITY_OBJECTIVE: FANTASY_PERFORMANCE]');
+      expect(prompt).toContain('AUTHORITATIVE POINTS & MULTIPLIERS (Facts)');
+      expect(prompt).toContain('TOP CONTRIBUTORS & DIFFERENTIALS (Interpretation)');
+      expect(prompt).toContain('FANTASY RULE BOUNDARIES');
+      expect(prompt).toContain('"""Why did my team score 380 points?"""');
+    });
+
+    it('Template 4: buildMatchSummaryPrompt structures innings recap, decisive factors, and factual integrity', () => {
+      const prompt = buildMatchSummaryPrompt(
+        matchCtx,
+        'Give a full match summary'
+      );
+
+      expect(prompt).toContain('[MATCH_DATA]');
+      expect(prompt).toContain('[CAPABILITY_OBJECTIVE: MATCH_SUMMARY]');
+      expect(prompt).toContain('INNINGS RECAP (Facts)');
+      expect(prompt).toContain('DECISIVE FACTORS (Interpretation)');
+      expect(prompt).toContain('FACTUAL INTEGRITY');
+      expect(prompt).toContain('"""Give a full match summary"""');
+    });
+
+    it('Template 5: buildTurningPointPrompt breaks down moment telemetry, tactical shifts, and boundaries', () => {
+      const prompt = buildTurningPointPrompt(
+        matchCtx,
+        'What were the pivotal turning points?'
+      );
+
+      expect(prompt).toContain('[MATCH_DATA]');
+      expect(prompt).toContain('[CAPABILITY_OBJECTIVE: TURNING_POINTS]');
+      expect(prompt).toContain('MOMENT TELEMETRY (Facts)');
+      expect(prompt).toContain('TACTICAL SHIFT (Interpretation)');
+      expect(prompt).toContain('UNCERTAINTY & BOUNDARIES');
+      expect(prompt).toContain('"""What were the pivotal turning points?"""');
+    });
+
+    it('Unified buildPromptPayload dispatches cleanly across all 5 topic keys', () => {
+      expect(buildPromptPayload('MATCH_SITUATION', matchCtx, 'Q')).toContain('[CAPABILITY_OBJECTIVE: MATCH_SITUATION]');
+      expect(buildPromptPayload('MATCH_SUMMARY', matchCtx, 'Q')).toContain('[CAPABILITY_OBJECTIVE: MATCH_SUMMARY]');
+      expect(buildPromptPayload('TURNING_POINTS', matchCtx, 'Q')).toContain('[CAPABILITY_OBJECTIVE: TURNING_POINTS]');
+      expect(buildPromptPayload('PLAYER_PERFORMANCE', matchCtx, 'Q')).toContain('[CAPABILITY_OBJECTIVE: PLAYER_PERFORMANCE]');
+      expect(buildPromptPayload('FANTASY_PERFORMANCE', matchCtx, 'Q')).toContain('[CAPABILITY_OBJECTIVE: FANTASY_PERFORMANCE]');
     });
   });
 
   // =========================================================================
-  // 2. CONTEXT ASSEMBLER & UNCERTAINTY HANDLING (AI_MODULE_DESIGN.md §6, §7)
+  // 4. CONTEXT ASSEMBLER & UNCERTAINTY HANDLING (AI_MODULE_DESIGN.md §6, §7)
   // =========================================================================
-  describe('2. Structured Match Context Assembly & Grounding', () => {
+  describe('4. Structured Match Context Assembly & Grounding', () => {
     it('retrieves verified sample fixture context with complete telemetry', async () => {
       const ctx = await assembleMatchContext(null, 'm-ind-aus-t20');
       expect(ctx).not.toBeNull();
@@ -154,9 +255,9 @@ describe('FanPulse AI — Gemini API Match Assistant Subsystem', () => {
   });
 
   // =========================================================================
-  // 3. OUTPUT VALIDATION & ANTI-HALLUCINATION GUARDRAILS (AI_MODULE_DESIGN.md §10)
+  // 5. OUTPUT VALIDATION & ANTI-HALLUCINATION GUARDRAILS (AI_MODULE_DESIGN.md §10)
   // =========================================================================
-  describe('3. Output Validation & Hallucination Sanitization', () => {
+  describe('5. Output Validation & Hallucination Sanitization', () => {
     it('approves grounded cricket commentary and formats properly', () => {
       const generated =
         '**India** reached **184/4** chasing **178/8**. **Virat Kohli** anchored the innings with **74* off 48 balls**, while **Jasprit Bumrah** claimed **3/24**.';
@@ -193,9 +294,9 @@ describe('FanPulse AI — Gemini API Match Assistant Subsystem', () => {
   });
 
   // =========================================================================
-  // 4. RATE LIMITING ENGINE (AI_MODULE_DESIGN.md §12.1)
+  // 6. RATE LIMITING ENGINE (AI_MODULE_DESIGN.md §12.1)
   // =========================================================================
-  describe('4. In-Memory Token Bucket Rate Limiting', () => {
+  describe('6. In-Memory Token Bucket Rate Limiting', () => {
     it('allows queries within the burst limit (10 queries per minute) and blocks the 11th', () => {
       const limiter = new AiRateLimiter(10, 50);
       const user = 'user-burst-test-1';
@@ -239,9 +340,9 @@ describe('FanPulse AI — Gemini API Match Assistant Subsystem', () => {
   });
 
   // =========================================================================
-  // 5. RESILIENT GEMINI API CLIENT (AI_MODULE_DESIGN.md §5, §11)
+  // 7. RESILIENT GEMINI API CLIENT (AI_MODULE_DESIGN.md §5, §11)
   // =========================================================================
-  describe('5. Resilient Gemini API Client (Mocked Upstream)', () => {
+  describe('7. Resilient Gemini API Client (Mocked Upstream)', () => {
     it('successfully sends prompt with x-goog-api-key header and parses Gemini 1.5 Flash candidate text', async () => {
       const mockFetch = vi.fn().mockResolvedValue({
         ok: true,
@@ -373,9 +474,9 @@ describe('FanPulse AI — Gemini API Match Assistant Subsystem', () => {
   });
 
   // =========================================================================
-  // 6. FRONTEND AI SERVICE INTEGRATION (frontend/src/services/aiService.js)
+  // 8. FRONTEND AI SERVICE INTEGRATION (frontend/src/services/aiService.js)
   // =========================================================================
-  describe('6. Frontend aiService Integration', () => {
+  describe('8. Frontend aiService Integration', () => {
     it('dispatches question to /ai-assistant Edge Function with topic and context', async () => {
       const mockPost = vi.spyOn(apiClient, 'post').mockResolvedValueOnce({
         data: {
@@ -452,9 +553,9 @@ describe('FanPulse AI — Gemini API Match Assistant Subsystem', () => {
   });
 
   // =========================================================================
-  // 7. SECURITY & CREDENTIAL ISOLATION (NFR-SEC-01)
+  // 9. SECURITY & CREDENTIAL ISOLATION (NFR-SEC-01)
   // =========================================================================
-  describe('7. Security & Credential Isolation Audit', () => {
+  describe('9. Security & Credential Isolation Audit', () => {
     it('verifies that frontend source files do NOT reference GEMINI_API_KEY or expose AI credentials', () => {
       // Confirm aiService only talks to the backend proxy
       expect(typeof aiService.askQuestion).toBe('function');

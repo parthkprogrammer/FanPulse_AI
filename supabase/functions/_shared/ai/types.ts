@@ -4,10 +4,13 @@
  */
 
 export type AiTopic =
-  | 'MATCH_EXPLANATION'
-  | 'KEY_MOMENTS'
+  | 'MATCH_SITUATION'
   | 'PLAYER_PERFORMANCE'
   | 'FANTASY_PERFORMANCE'
+  | 'MATCH_SUMMARY'
+  | 'TURNING_POINTS'
+  | 'MATCH_EXPLANATION' // Backward-compatible alias for MATCH_SITUATION
+  | 'KEY_MOMENTS'       // Backward-compatible alias for TURNING_POINTS
   | 'GENERAL_CRICKET';
 
 export interface AiAssistantRequest {
