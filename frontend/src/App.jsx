@@ -52,6 +52,7 @@ export const App = () => {
           <Route path="/fantasy/create" element={<FantasyCreatePage />} />
           <Route path="/matches/:matchId/fantasy/create" element={<FantasyCreatePage />} />
           <Route path="/fantasy/compare" element={<FantasyComparePage />} />
+          <Route path="/my-teams/compare" element={<FantasyComparePage />} />
           <Route path="/assistant" element={<AiAssistantPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
