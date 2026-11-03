@@ -10,7 +10,7 @@ describe('Fantasy Team Management Module — Domain & Service Layer Tests', () =
     { id: 'p-rohit-s', name: 'Rohit Sharma', role: 'BATTER', teamCode: 'IND' },
     { id: 'p-shubman-g', name: 'Shubman Gill', role: 'BATTER', teamCode: 'IND' },
     { id: 'p-virat-k', name: 'Virat Kohli', role: 'BATTER', teamCode: 'IND' },
-    { id: 'p-surya-y', name: 'Suryakumar Yadav', role: 'BATTER', teamCode: 'IND' },
+    { id: 'p-steve-s', name: 'Steve Smith', role: 'BATTER', teamCode: 'AUS' },
     { id: 'p-rishabh-p', name: 'Rishabh Pant', role: 'WICKET_KEEPER', teamCode: 'IND' },
     { id: 'p-hardik-p', name: 'Hardik Pandya', role: 'ALL_ROUNDER', teamCode: 'IND' },
     { id: 'p-ravindra-j', name: 'Ravindra Jadeja', role: 'ALL_ROUNDER', teamCode: 'IND' },

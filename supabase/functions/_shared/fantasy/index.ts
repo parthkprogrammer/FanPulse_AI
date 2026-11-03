@@ -10,7 +10,7 @@ import { PlayerRole } from '../players/index.ts';
 export const FANTASY_RULES = {
   SQUAD_SIZE: 11, // BR-TEAM-01
   MIN_TEAMS_REPRESENTED: 2, // BR-TEAM-02
-  MAX_PLAYERS_PER_TEAM: 7,
+  MAX_PLAYERS_PER_TEAM: 7, // BR-TEAM-02
   MIN_BATTERS: 1, // BR-TEAM-03
   MIN_BOWLERS: 1, // BR-TEAM-03
   MIN_ALL_ROUNDERS: 1, // BR-TEAM-03
@@ -109,6 +109,17 @@ export function validateSquadComposition(squad: {
     if (teams.size < FANTASY_RULES.MIN_TEAMS_REPRESENTED) {
       errors.push('Lineup must include players from both competing teams (BR-TEAM-02).');
     }
+
+    const teamCounts: Record<string, number> = {};
+    for (const player of squad.players) {
+      if (player.teamCode) {
+        teamCounts[player.teamCode] = (teamCounts[player.teamCode] || 0) + 1;
+        if (teamCounts[player.teamCode] > FANTASY_RULES.MAX_PLAYERS_PER_TEAM) {
+          errors.push(`Maximum ${FANTASY_RULES.MAX_PLAYERS_PER_TEAM} players allowed from a single team.`);
+          break;
+        }
+      }
+    }
   }
 
   return {
@@ -116,4 +127,3 @@ export function validateSquadComposition(squad: {
     errors,
   };
 }
-
