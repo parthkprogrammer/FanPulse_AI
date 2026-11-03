@@ -39,7 +39,7 @@ permissions:
   deployments: write
 
 concurrency:
-  group: deployment-${{ github.ref }}-${{ inputs.target_environment }}
+  group: deployment-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -49,8 +49,7 @@ jobs:
   deploy-supabase:
     name: Deploy Supabase (Database & Functions)
     runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_database || inputs.deploy_functions }}
-    environment: ${{ inputs.target_environment }}
+    if: ${{ inputs.deploy_database == true || inputs.deploy_functions == true }}
 
     steps:
       - name: Checkout Code
@@ -84,7 +83,7 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
       - name: Apply Database Migrations (db push)
-        if: ${{ inputs.deploy_database && secrets.SUPABASE_PROJECT_ID != '' }}
+        if: ${{ inputs.deploy_database == true && secrets.SUPABASE_PROJECT_ID != '' }}
         run: |
           echo "Applying version-controlled migrations to remote database..."
           npx supabase db push --include-all
@@ -93,7 +92,7 @@ jobs:
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
       - name: Set Edge Function Secrets in Supabase Vault
-        if: ${{ inputs.deploy_functions && secrets.GEMINI_API_KEY != '' && secrets.SUPABASE_PROJECT_ID != '' }}
+        if: ${{ inputs.deploy_functions == true && secrets.GEMINI_API_KEY != '' && secrets.SUPABASE_PROJECT_ID != '' }}
         run: |
           echo "Configuring server-side secrets in Supabase Vault..."
           npx supabase secrets set \
@@ -105,7 +104,7 @@ jobs:
           DEPLOY_ENV: ${{ inputs.target_environment }}
 
       - name: Deploy Supabase Edge Functions (Enforcing Gateway JWTs)
-        if: ${{ inputs.deploy_functions && secrets.SUPABASE_PROJECT_ID != '' }}
+        if: ${{ inputs.deploy_functions == true && secrets.SUPABASE_PROJECT_ID != '' }}
         run: |
           echo "Deploying Edge Functions with appropriate JWT security levels..."
           
@@ -130,8 +129,7 @@ jobs:
   build-frontend:
     name: Build & Package Frontend
     runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_frontend }}
-    environment: ${{ inputs.target_environment }}
+    if: ${{ inputs.deploy_frontend == true }}
     defaults:
       run:
         working-directory: frontend
