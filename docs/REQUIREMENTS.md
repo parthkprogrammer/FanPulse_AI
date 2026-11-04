@@ -157,7 +157,7 @@
 | `NFR-MAINT-01` | The frontend and backend shall be separate, independently deployable applications communicating via a documented REST API. | Each application builds, starts, and passes its tests independently. |
 | `NFR-MAINT-02` | The backend shall use a layered architecture: controller → service → repository. | Code review confirms no direct repository access from controllers, and no business logic in controllers. |
 | `NFR-MAINT-03` | The AI integration shall be behind an abstraction layer (interface or service contract) to allow provider changes without modifying business logic. | Swapping the AI implementation class does not require changes to the service or controller layers. |
-| `NFR-MAINT-04` | Database schema changes shall be managed through versioned migration scripts (e.g., Flyway or Liquibase). | All schema changes are tracked in numbered migration files; running migrations on a fresh database produces the expected schema. |
+| `NFR-MAINT-04` | Database schema changes shall be managed through versioned migration scripts (e.g., Supabase CLI migrations or Liquibase). | All schema changes are tracked in numbered migration files; running migrations on a fresh database produces the expected schema. |
 
 ### 3.6 Usability (NFR-USE)
 

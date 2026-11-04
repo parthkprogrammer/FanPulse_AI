@@ -1,7 +1,18 @@
+> [!NOTE]
+> **Historical Prototype Specification:** This document captures the initial Phase 0 architectural proposal (Java / Spring Boot / Spring Data JPA). As documented in the production architecture, FanPulse AI transitioned to **Supabase Edge Functions (Deno / TypeScript)** and **Supabase PostgreSQL** for streamlined cloud deployment, Row-Level Security (RLS), and zero-maintenance serverless scaling.
+>
+> For the current production implementation, please consult:
+> - [System Architecture](../SYSTEM_ARCHITECTURE.md)
+> - [API Reference](../API_REFERENCE.md)
+> - [AI Implementation](../AI_IMPLEMENTATION.md)
+> - [Database Schema](../DATABASE_SCHEMA.md)
+
+---
+
 # FanPulse AI — Backend Layered Architecture Specification
 
 > Enterprise Spring Boot architecture, package design, layer responsibilities, and SOLID design principles.
-> Derived from [PROJECT_VISION.md](file:///U:/Fanpulse_AI/docs/PROJECT_VISION.md), [REQUIREMENTS.md](file:///U:/Fanpulse_AI/docs/REQUIREMENTS.md), [SYSTEM_ARCHITECTURE.md](file:///U:/Fanpulse_AI/docs/SYSTEM_ARCHITECTURE.md), [DATABASE_DESIGN.md](file:///U:/Fanpulse_AI/docs/DATABASE_DESIGN.md), and [API_DESIGN.md](file:///U:/Fanpulse_AI/docs/API_DESIGN.md).
+> Derived from [PROJECT_VISION.md](file:///U:/Fanpulse_AI/docs/PROJECT_VISION.md), [REQUIREMENTS.md](file:///U:/Fanpulse_AI/docs/REQUIREMENTS.md), [SYSTEM_ARCHITECTURE.md](file:///U:/Fanpulse_AI/docs/SYSTEM_ARCHITECTURE.md), [DATABASE_DESIGN.md](file:///U:/Fanpulse_AI/docs/DATABASE_DESIGN.md), and [API_DESIGN.md](file:///u:/Fanpulse_AI/docs/API_REFERENCE.md).
 
 ---
 

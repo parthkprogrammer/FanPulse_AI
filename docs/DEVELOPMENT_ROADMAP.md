@@ -1,7 +1,10 @@
 # FanPulse AI — Development Roadmap & Implementation Plan
 
 > Comprehensive execution roadmap, milestone breakdown, dependency chains, and testing requirements for the FanPulse AI MVP.
-> Derived from [PROJECT_VISION.md](file:///U:/Fanpulse_AI/docs/PROJECT_VISION.md), [REQUIREMENTS.md](file:///U:/Fanpulse_AI/docs/REQUIREMENTS.md), [SYSTEM_ARCHITECTURE.md](file:///U:/Fanpulse_AI/docs/SYSTEM_ARCHITECTURE.md), [TECHNOLOGY_STACK.md](file:///U:/Fanpulse_AI/docs/TECHNOLOGY_STACK.md), [DATABASE_DESIGN.md](file:///U:/Fanpulse_AI/docs/DATABASE_DESIGN.md), [API_DESIGN.md](file:///U:/Fanpulse_AI/docs/API_DESIGN.md), [FRONTEND_DESIGN.md](file:///U:/Fanpulse_AI/docs/FRONTEND_DESIGN.md), and [AI_MODULE_DESIGN.md](file:///U:/Fanpulse_AI/docs/AI_MODULE_DESIGN.md).
+> Derived from [PROJECT_VISION.md](file:///U:/Fanpulse_AI/docs/PROJECT_VISION.md), [REQUIREMENTS.md](file:///U:/Fanpulse_AI/docs/REQUIREMENTS.md), [SYSTEM_ARCHITECTURE.md](file:///U:/Fanpulse_AI/docs/SYSTEM_ARCHITECTURE.md), [TECHNOLOGY_STACK.md](file:///U:/Fanpulse_AI/docs/TECHNOLOGY_STACK.md), [DATABASE_DESIGN.md](file:///U:/Fanpulse_AI/docs/DATABASE_DESIGN.md), [API_DESIGN.md](file:///u:/Fanpulse_AI/docs/API_REFERENCE.md), [FRONTEND_DESIGN.md](file:///U:/Fanpulse_AI/docs/FRONTEND_DESIGN.md), and [AI_MODULE_DESIGN.md](file:///u:/Fanpulse_AI/docs/AI_IMPLEMENTATION.md).
+> [!NOTE]
+> **Roadmap Architectural Transition:** This roadmap outlines the initial engineering plan. In Phase 2, backend services transitioned to **Supabase Edge Functions (Deno / TypeScript)** and **Supabase PostgreSQL** in place of standalone Java containers, successfully delivering all MVP milestones serverlessly. (See [docs/SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md) and [docs/PROJECT_REPORT.md](PROJECT_REPORT.md)).
+
 
 ---
 
@@ -115,7 +118,7 @@ Bootstrap the Spring Boot 3.3.x backend application on Java 21, establishing Mav
 #### 2. Tasks
 1. Initialize Maven project with `spring-boot-starter-parent` (3.3.5) and Java 21 in `/backend/pom.xml`.
 2. Configure Maven dependencies: `spring-boot-starter-web`, `spring-boot-starter-data-jpa`, `spring-boot-starter-security`, `spring-boot-starter-validation`, `postgresql`, `flyway-core`, `flyway-database-postgresql`, `jjwt-api`, `lombok` (optional/compile-only), `spring-boot-starter-test`.
-3. Establish package structure according to [BACKEND_DESIGN.md §2](file:///U:/Fanpulse_AI/docs/BACKEND_DESIGN.md#L25): `config`, `controller`, `service`, `repository`, `entity`, `dto`, `mapper`, `security`, `exception`, `validation`, `integration`, `scheduler`.
+3. Establish package structure according to [BACKEND_DESIGN.md §2](file:///U:/Fanpulse_AI/docs/SYSTEM_ARCHITECTURE.md#L25): `config`, `controller`, `service`, `repository`, `entity`, `dto`, `mapper`, `security`, `exception`, `validation`, `integration`, `scheduler`.
 4. Implement `BaseAuditableEntity` with JPA Auditing for `createdAt` and `updatedAt`.
 5. Implement `GlobalExceptionHandler` (`@RestControllerAdvice`) returning standardized `ApiErrorResponse` JSON envelopes (`NFR-REL-03`).
 6. Implement custom base runtime exceptions: `ResourceNotFoundException`, `DuplicateResourceException`, `BusinessRuleException`.
@@ -215,7 +218,7 @@ Implement match listing, status filtering, match details, and full 2-innings sco
 
 #### 2. Tasks
 1. Implement `MatchService` and `MatchRepository` queries for status/format filtering (`FR-MATCH-01`, `03`).
-2. Implement `MatchController` endpoints according to [API_DESIGN.md §3](file:///U:/Fanpulse_AI/docs/API_DESIGN.md#L145):
+2. Implement `MatchController` endpoints according to [API_DESIGN.md §3](file:///u:/Fanpulse_AI/docs/API_REFERENCE.md#L145):
    * `GET /api/v1/matches` (paginated, filterable)
    * `GET /api/v1/matches/{id}`
    * `GET /api/v1/matches/{id}/scorecard` (`FR-MATCH-02`)
@@ -254,7 +257,7 @@ Implement player directory browsing, role/country filtering, career aggregate st
 
 #### 2. Tasks
 1. Implement `PlayerService` and `PlayerRepository` with derived queries (`FR-STATS-05`).
-2. Implement `PlayerController` endpoints according to [API_DESIGN.md §4](file:///U:/Fanpulse_AI/docs/API_DESIGN.md#L280):
+2. Implement `PlayerController` endpoints according to [API_DESIGN.md §4](file:///u:/Fanpulse_AI/docs/API_REFERENCE.md#L280):
    * `GET /api/v1/players` (filterable by country, role)
    * `GET /api/v1/players/{id}` (career batting & bowling aggregates, `FR-STATS-01`–`03`)
    * `GET /api/v1/players/{id}/matches/{matchId}` (match performance, `FR-STATS-04`)
@@ -297,7 +300,7 @@ Implement the complete fantasy team creation and drafting engine, enforcing all 
    * Exactly 1 Captain and 1 Vice-Captain (`captain <> viceCaptain`, `BR-TEAM-04`, `FR-FANTASY-05`).
    * Selected players must exist in active `match_rosters` (`BR-TEAM-05`).
    * Edits/deletions permitted only when match is `UPCOMING` (`BR-TEAM-06`, `FR-FANTASY-08`, `09`).
-2. Implement `FantasyTeamController` endpoints according to [API_DESIGN.md §5](file:///U:/Fanpulse_AI/docs/API_DESIGN.md#L370):
+2. Implement `FantasyTeamController` endpoints according to [API_DESIGN.md §5](file:///u:/Fanpulse_AI/docs/API_REFERENCE.md#L370):
    * `POST /api/v1/fantasy-teams` (Create team)
    * `PUT /api/v1/fantasy-teams/{id}` (Update team)
    * `DELETE /api/v1/fantasy-teams/{id}` (Delete team)
@@ -345,7 +348,7 @@ Implement the configuration-driven fantasy points calculation engine, calculatin
    * Apply multipliers: Captain (2.0x), Vice-Captain (1.5x) (`FR-SCORE-02`).
    * Sum total team score and update `fantasy_teams.total_points` (`FR-SCORE-03`).
 2. Persist detailed audit trail in `fantasy_player_points` including JSON breakdown.
-3. Implement `ScoringController` endpoints according to [API_DESIGN.md §6](file:///U:/Fanpulse_AI/docs/API_DESIGN.md#L485):
+3. Implement `ScoringController` endpoints according to [API_DESIGN.md §6](file:///u:/Fanpulse_AI/docs/API_REFERENCE.md#L485):
    * `POST /api/v1/matches/{id}/scoring/calculate` (Admin/system trigger, `FR-SCORE-05`)
    * `GET /api/v1/matches/{id}/players/{id}/points` (Player point breakdown)
    * `GET /api/v1/fantasy-teams/{id}/points` (Team points breakdown, `FR-SCORE-04`)
@@ -418,10 +421,10 @@ Implement the grounded AI match assistant using Spring WebClient and provider-ag
 #### 2. Tasks
 1. Implement `AiService` interface and `GeminiAiServiceImpl` adapter using Spring WebClient (`FR-AI-05`).
 2. Implement `MockAiServiceImpl` for deterministic, zero-cost offline testing and local development.
-3. Implement `MatchContextAssembler` serializing match data into structured JSON context according to [AI_MODULE_DESIGN.md §6](file:///U:/Fanpulse_AI/docs/AI_MODULE_DESIGN.md#L125).
+3. Implement `MatchContextAssembler` serializing match data into structured JSON context according to [AI_MODULE_DESIGN.md §6](file:///u:/Fanpulse_AI/docs/AI_IMPLEMENTATION.md#L125).
 4. Implement `AiPromptBuilder` embedding context into prompt templates with grounding guardrails and negative constraints (`BR-AI-01`, `BR-AI-02`).
 5. Implement `AiResponseValidator` verifying response structure and guarding against hallucinated names.
-6. Implement `AiController` endpoints according to [API_DESIGN.md §8](file:///U:/Fanpulse_AI/docs/API_DESIGN.md#L605):
+6. Implement `AiController` endpoints according to [API_DESIGN.md §8](file:///u:/Fanpulse_AI/docs/API_REFERENCE.md#L605):
    * `POST /api/v1/ai/match-summary` (`FR-AI-01`, `UC-08`)
    * `POST /api/v1/ai/player-insight` (`FR-INSIGHT-01`, `UC-09`)
    * `POST /api/v1/ai/key-moments` (`FR-INSIGHT-02`, `UC-10`)

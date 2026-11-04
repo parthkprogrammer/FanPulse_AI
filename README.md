@@ -1,109 +1,250 @@
-# FanPulse AI
+# FanPulse AI — AI-Powered Cricket Match Intelligence & Fantasy Companion
 
-> Cricket-only, AI-powered live sports and fantasy companion.
+[![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=flat-square&logo=react)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-5.4.10-646CFF?style=flat-square&logo=vite)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.14-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL_16-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com/)
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini-1.5_Flash-4285F4?style=flat-square&logo=google)](https://ai.google.dev/)
+[![Vercel](https://img.shields.io/badge/Deployed-Vercel-000000?style=flat-square&logo=vercel)](https://fanpulseai-nine.vercel.app/dashboard)
+[![Tests](https://img.shields.io/badge/Tests-461%20Passed-brightgreen?style=flat-square&logo=vitest)](docs/TESTING_AND_QA.md)
 
-[![Build Status](https://img.shields.io/badge/Build-Passing-emerald)](https://github.com/parthkprogrammer/FanPulse_AI)
-[![Java Version](https://img.shields.io/badge/Java-21%20LTS-blue)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-green)](https://spring.io/projects/spring-boot)
-[![React](https://img.shields.io/badge/React-18.3.1-61DAFB)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.5.4-3178C6)](https://www.typescriptlang.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16.4-336791)](https://www.postgresql.org/)
-[![License](https://img.shields.io/badge/License-MIT-gray)](LICENSE)
-
----
-
-## 1. Overview
-
-Cricket fans routinely juggle 3 to 5 separate applications during match days: one for live scores, another for fantasy leagues, a third for player stats, and additional platforms for tactical commentary. This fragmented experience causes constant context-switching and information overload.
-
-**FanPulse AI** unifies the cricket match experience into a single intelligent platform:
-1. **Cricket Match Dashboard:** Live scorecards, overs, innings, and delivery feeds.
-2. **Player Statistics:** Comprehensive batting, bowling, and fielding profiles.
-3. **User-Created Fantasy Teams:** Custom 11-player lineup drafting across both competing squads.
-4. **Deterministic Fantasy Scoring:** Backend-calculated scoring with Captain (2x) and Vice-Captain (1.5x) multipliers.
-5. **Fantasy Team Comparison:** Side-by-side differential analysis and score variance tracking.
-6. **AI-Powered Match Explanations:** Natural-language match situation narratives grounded strictly in verified match data.
+> **Submission for the Dream11 Forward Deployed Engineer Intern Assignment ("Show Us What You Would Build")**  
+> **Author:** Parth Kedar  
+> **Live Production Demo:** [https://fanpulseai-nine.vercel.app/dashboard](https://fanpulseai-nine.vercel.app/dashboard)  
+> **GitHub Repository:** [https://github.com/parthkprogrammer/FanPulse_AI](https://github.com/parthkprogrammer/FanPulse_AI)  
+> **Publication-Quality PDF Report:** [`docs/FANPULSE_AI_DREAM11_SUBMISSION.pdf`](docs/FANPULSE_AI_DREAM11_SUBMISSION.pdf)
 
 ---
 
-## 2. Technology Stack
+## 1. Problem Statement & Fan Pulse
 
-| Layer | Technology | Version | Purpose |
-|---|---|---|---|
-| **Frontend** | React + TypeScript | 18.3 / 5.5 | Type-safe declarative Single Page Application (SPA). |
-| **Tooling & Styling** | Vite + Tailwind CSS | 5.4 / 3.4 | ESM dev server, minified Rollup packaging, utility-first dark styling. |
-| **Frontend State** | Redux Toolkit | 2.2 | Centralized state management for Auth, match cache, and fantasy drafts. |
-| **Backend Framework** | Spring Boot | 3.3.5 | Enterprise modular monolith on Java 21 LTS with embedded Tomcat. |
-| **Security** | Spring Security + JWT | 6.3.4 | Stateless Bearer token authentication and role-based access control. |
-| **Persistence** | Spring Data JPA + Hibernate | 3.3 / 6.5 | Relational data access and transaction management (`@Transactional`). |
-| **Database** | PostgreSQL | 16.4 | ACID relational storage with schema migrations via Flyway. |
-| **AI Integration** | Spring WebClient (Direct LLM) | 6.1 | Grounded prompt-completion pipeline for match and player insights. |
-| **Testing** | JUnit 5 + Mockito + Vitest | Modern | Automated unit, component, and Testcontainers integration testing. |
-| **DevOps** | Docker + GitHub Actions | Modern | Multi-stage container builds and automated CI quality gates. |
-
----
-
-## 3. Repository Structure
+During live cricket matches, fans face an exhausting, fragmented experience. To follow live ball-by-ball updates, track player statistics, manage fantasy teams, and understand game momentum, fans cycle between three to five distinct applications (Cricbuzz, Dream11, ESPNcricinfo, and social media).
 
 ```
-FanPulse_AI/
-├── .github/
-│   └── workflows/          # GitHub Actions CI/CD automation pipelines
-├── backend/                # Java 21 + Spring Boot 3.3.5 REST API service
-├── database/               # PostgreSQL schema DDL and Flyway migration scripts
-├── docs/                   # Architectural blueprints & engineering specifications
-├── frontend/               # React 18 + TypeScript + Vite + Tailwind CSS SPA
-├── infrastructure/         # Docker Compose, Nginx, and deployment configs
-├── .editorconfig           # IDE cross-platform formatting rules
-├── .gitignore              # Multi-stack Git ignore rules
-└── README.md               # Project overview and developer onboarding
+[ Traditional Fan Routine ]
+  Scoreboard App (Cricbuzz) ──> Fantasy App (Dream11) ──> Analytics Portal (Cricinfo) ──> Social Feeds (X / Reddit)
+                                      │
+                         [ Fragmented Experience ]
+                         - Cognitive fatigue & context-switching
+                         - Mismatched statistics & naming conventions
+                         - No contextual explanation of fantasy point swings
+                         - Unclear death-over tactical shifts
+```
+
+### The FanPulse AI Solution
+**FanPulse AI** integrates these disparate workflows into a single high-performance web companion:
+1. **Live Match Center & Telemetry:** Multi-format scorecards (T20, ODI, Test) tracking runs, wickets, overs, CRR, RRR, extras, and fall-of-wickets.
+2. **Deterministic Fantasy Engine:** Transparent squad creation, budget validation (100 credits), role boundaries (1-4 WK, 3-6 BAT, 1-4 AR, 3-6 BOWL), and side-by-side squad comparison.
+3. **Grounded AI Match Assistant:** Conversational match analysis powered by Google's Gemini 1.5 Flash via Supabase Edge Functions, strictly grounded in structured database telemetry.
+
+---
+
+## 2. Production Screenshots (Visual Proof)
+
+All screenshots represent authentic captures from the live production deployment on Vercel:
+
+| Screen | Feature Title | Live Production Preview |
+| :--- | :--- | :--- |
+| **01** | **Live Match Dashboard** | [![Dashboard](docs/screenshots/01_dashboard.png)](docs/screenshots/01_dashboard.png)<br/>*Featured match spotlight (IND vs AUS 3rd T20I at MCG, 184/4 in 19.2 ov def. 178/8 in 20 ov), Top Performers, AI Insights.* |
+| **02** | **Cricket Match Center** | [![Match Center](docs/screenshots/02_match_center.png)](docs/screenshots/02_match_center.png)<br/>*Multi-format fixture list with filters (`All`, `Live`, `Upcoming`, `Completed`) and venue cards.* |
+| **03** | **Match Details Header** | [![Match Details](docs/screenshots/03_match_details.png)](docs/screenshots/03_match_details.png)<br/>*Match status, venue, toss decision, CRR/RRR metrics, and tabbed sub-navigation.* |
+| **04** | **Innings Scorecard** | [![Scorecard](docs/screenshots/04_match_scorecard.png)](docs/screenshots/04_match_scorecard.png)<br/>*Batting strike rates, bowling economies, maidens, extras, and fall-of-wickets.* |
+| **05** | **Player Profile** | [![Player Profile](docs/screenshots/05_player_profile.png)](docs/screenshots/05_player_profile.png)<br/>*Career aggregate statistics, playing roles, batting/bowling styles, and credit valuations.* |
+| **06** | **User Authentication** | [![Auth](docs/screenshots/06_user_authentication.png)](docs/screenshots/06_user_authentication.png)<br/>*Supabase GoTrue Auth interface with email/password login and demo credentials.* |
+| **07** | **Fantasy Team Builder** | [![Builder](docs/screenshots/07_fantasy_team_builder.png)](docs/screenshots/07_fantasy_team_builder.png)<br/>*11-player squad picker, live 100-credit budget tracker, and Captain/Vice-Captain designation.* |
+| **08** | **Fantasy Team Comparison** | [![Comparison](docs/screenshots/08_fantasy_team_comparison.png)](docs/screenshots/08_fantasy_team_comparison.png)<br/>*Side-by-side squad comparison displaying total points, 18 differential players, 2 common picks, and captain impact.* |
+| **09** | **AI Assistant Interface** | [![AI Interface](docs/screenshots/09_ai_assistant.png)](docs/screenshots/09_ai_assistant.png)<br/>*Chat workspace with fixture selector, character counter (250 chars), and suggested queries.* |
+| **10** | **Grounded AI Response** | [![AI Response](docs/screenshots/10_ai_assistant_response.png)](docs/screenshots/10_ai_assistant_response.png)<br/>*Grounded conversational explanation of India's chase and Cummins/Starc death-over spells.* |
+
+---
+
+## 3. System Architecture & Engineering Blueprint
+
+FanPulse AI is structured as a decoupled cloud application combining a high-performance **React SPA** on Vercel with a serverless **Supabase Cloud Backend** and **Google Gemini 1.5 Flash**:
+
+```mermaid
+flowchart TD
+    subgraph Client Layer [Vercel Edge Network]
+        SPA["React 18 SPA (Vite + Tailwind CSS)<br/>React Router · Axios · Recharts"]
+    end
+
+    subgraph Auth & Security Boundary [Supabase Auth]
+        GOTRUE["GoTrue Auth Service<br/>JWT Tokens · Session Storage"]
+    end
+
+    subgraph Serverless Edge Tier [Supabase Edge Functions (Deno / TypeScript)]
+        HCHECK["health-check"]
+        MMATCH["manage-matches"]
+        MPLAYER["manage-players"]
+        FBUILD["validate-fantasy-team"]
+        FMGMT["manage-fantasy-teams"]
+        FCOMP["compare-fantasy-teams"]
+        FSCORE["calculate-fantasy-scoring"]
+        SYNC["sync-cricket-data"]
+        AI["ai-assistant<br/>(Context Assembler)"]
+    end
+
+    subgraph Data & Storage Tier [Supabase Managed PostgreSQL 16]
+        RLS["Row Level Security (RLS) Engine"]
+        PUB_TABLES[("Public Cricket Data<br/>teams · venues · matches<br/>match_innings · players<br/>match_player_stats")]
+        USER_TABLES[("User Private Data<br/>user_profiles · fantasy_teams<br/>fantasy_team_players<br/>ai_conversations · ai_messages")]
+    end
+
+    subgraph External Intelligence Tier [Google AI Studio]
+        GEMINI["Gemini 1.5 Flash API<br/>Bounded Grounded Generation"]
+    end
+
+    SPA -->|Public Route Requests| MMATCH
+    SPA -->|Public Route Requests| MPLAYER
+    SPA -->|Direct Read-Only / Anon Client| PUB_TABLES
+    SPA -->|User Authentication| GOTRUE
+    SPA -->|Authenticated API (Bearer JWT)| FBUILD
+    SPA -->|Authenticated API (Bearer JWT)| FMGMT
+    SPA -->|Authenticated API (Bearer JWT)| FCOMP
+    SPA -->|Authenticated API (Bearer JWT)| AI
+
+    MMATCH --> PUB_TABLES
+    MPLAYER --> PUB_TABLES
+    FBUILD --> PUB_TABLES
+    FMGMT --> RLS
+    FCOMP --> RLS
+    FSCORE --> PUB_TABLES
+    SYNC --> PUB_TABLES
+    RLS --> USER_TABLES
+
+    AI -->|Assemble Grounded Telemetry| PUB_TABLES
+    AI -->|Prompt + Injected Telemetry| GEMINI
+    GEMINI -->|Contextual Analysis| AI
 ```
 
 ---
 
-## 4. Documentation Index
+## 4. Production Technology Stack
 
-The platform architecture is fully specified across 10 engineering blueprints:
-
-| Document | Focus & Content |
-|---|---|
-| [PROJECT_VISION.md](file:///U:/Fanpulse_AI/docs/PROJECT_VISION.md) | Problem statement, core pillars, target audience, MVP scope, and out-of-scope boundaries. |
-| [COMPETITOR_ANALYSIS.md](file:///U:/Fanpulse_AI/docs/COMPETITOR_ANALYSIS.md) | Competitive analysis of Cricbuzz, ESPNcricinfo, Dream11, CricViz, and India's PROG Act 2025 regulatory context. |
-| [REQUIREMENTS.md](file:///U:/Fanpulse_AI/docs/REQUIREMENTS.md) | 71 testable requirements (`FR-*`, `NFR-*`), 19 business rules (`BR-*`), and 10 use cases (`UC-*`). |
-| [SYSTEM_ARCHITECTURE.md](file:///U:/Fanpulse_AI/docs/SYSTEM_ARCHITECTURE.md) | High-level architecture, module decomposition, sequence diagrams, security boundaries, and trade-offs. |
-| [TECHNOLOGY_STACK.md](file:///U:/Fanpulse_AI/docs/TECHNOLOGY_STACK.md) | Official stable version matrix, deep technology evaluations, and RAG architectural evaluation. |
-| [DATABASE_DESIGN.md](file:///U:/Fanpulse_AI/docs/DATABASE_DESIGN.md) | Normalized PostgreSQL 16 schema, 16 entities, constraints, indexes, and sample SQL queries. |
-| [API_DESIGN.md](file:///U:/Fanpulse_AI/docs/API_DESIGN.md) | RESTful API specifications with request/response DTOs, validation rules, and HTTP error envelopes. |
-| [FRONTEND_DESIGN.md](file:///U:/Fanpulse_AI/docs/FRONTEND_DESIGN.md) | Design system, Tailwind palette, component hierarchy, and complete specifications for all 12 frontend pages. |
-| [AI_MODULE_DESIGN.md](file:///U:/Fanpulse_AI/docs/AI_MODULE_DESIGN.md) | AI service architecture, prompt engineering, structured match context, token budgets, and anti-hallucination guardrails. |
-| [DEVELOPMENT_ROADMAP.md](file:///U:/Fanpulse_AI/docs/DEVELOPMENT_ROADMAP.md) | 15-milestone implementation plan, branch conventions, test requirements, and Definition of Done. |
-
----
-
-## 5. Development Roadmap Summary
-
-Implementation proceeds in 15 sequential milestones outlined in the [Roadmap](file:///U:/Fanpulse_AI/docs/DEVELOPMENT_ROADMAP.md):
-
-* **M01–M04: Foundation:** Repo setup, Frontend & Backend scaffold, PostgreSQL & Flyway migrations.
-* **M05–M07: Core Data:** JWT Authentication, Match Management, and Player Statistics.
-* **M08–M10: Fantasy Engine:** 11-player lineup drafting, configuration-driven scoring, and team comparison.
-* **M11–M12: AI & QA:** Grounded AI match assistant, comprehensive test coverage (JaCoCo >= 80%).
-* **M13–M15: Operations:** Multi-stage Dockerization, GitHub Actions CI/CD, and MVP release tagging.
+| Architecture Layer | Production Technology | Version | Key Engineering Responsibilities |
+| :--- | :--- | :--- | :--- |
+| **Frontend Framework** | **React** | `18.3.1` | Declarative UI, state management, component composition. |
+| **Build & Tooling** | **Vite** | `5.4.10` | Fast HMR, Rollup production bundling, code-splitting. |
+| **Styling System** | **Tailwind CSS** | `3.4.14` | Mobile-first cricket dark-theme, responsive utility grid. |
+| **Routing** | **React Router DOM** | `6.27.0` | Client-side routing with `<ProtectedRoute>` guards. |
+| **Data Visualization** | **Recharts** | `2.13.0` | Worm charts, role distributions, fantasy differentials. |
+| **Database** | **PostgreSQL** (Supabase) | `16+` | Relational 3NF persistence, ACID compliance, 49 RLS policies. |
+| **Backend Compute** | **Supabase Edge Functions** | `Deno / TS` | 9 serverless micro-endpoints distributed across edge regions. |
+| **Authentication** | **Supabase GoTrue** | `v2.46+` | JWT bearer token issuance, session refresh, tenant isolation. |
+| **Artificial Intelligence**| **Google Gemini API** | `1.5 Flash` | Grounded match explanations, situational insights. |
+| **Test Framework** | **Vitest** | `4.1.12` | 30 test suites, 461 unit/component/integration tests. |
+| **Component Testing** | **Testing Library** | `16.3.3` | User event simulation, DOM assertions, accessibility. |
+| **Hosting & CDN** | **Vercel** | Edge Network| Global HTTP/2 delivery, Brotli compression, instant SSL. |
 
 ---
 
-## 6. Prerequisites
+## 5. Grounded AI Implementation & Anti-Hallucination Guardrails
 
-To develop on FanPulse AI locally, ensure the following are installed:
-* **Java Development Kit (JDK):** Version 21 LTS (e.g. Eclipse Temurin)
-* **Node.js:** Version 20 LTS or 22 LTS
-* **Apache Maven:** Version 3.9+ (or use included `mvnw`)
-* **Docker & Docker Compose:** Docker Engine 26+ / Compose v2.27+
-* **PostgreSQL:** Version 16+ (or via Docker container)
+The FanPulse AI Match Assistant is designed to eliminate generative hallucinations:
+
+1. **Structured Telemetry Delimiters:** Injected database telemetry is wrapped in strict boundary delimiters:
+   ```
+   === MATCH TELEMETRY BEGIN ===
+   Match: India vs Australia - 3rd T20I at Melbourne Cricket Ground
+   Australia: 178/8 (20.0 ov) | India: 184/4 (19.2 ov) - India won by 6 wickets
+   Top Batters: V. Kohli 68 (44b), G. Maxwell 54 (31b)
+   Top Bowlers: J. Bumrah 3/24 (4.0 ov), P. Cummins 2/32 (4.0 ov)
+   === MATCH TELEMETRY END ===
+   ```
+2. **Grounded Verification Output:**
+   > *"India scored 184/4 in 19.2 overs to defeat Australia (178/8 in 20.0 overs) by 6 wickets at the Melbourne Cricket Ground. Virat Kohli anchored the chase with 68 off 44 balls..."*
+3. **Decoupled Scoring Architecture:** The generative model is strictly prohibited from computing fantasy scores or modifying player tallies. All points calculations are handled by the deterministic mathematical scoring engine.
 
 ---
 
-## 7. License
+## 6. Deterministic Fantasy Scoring Engine
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+Fantasy points are computed exclusively by backend TypeScript logic (`supabase/functions/_shared/scoring/index.ts`):
 
+$$\text{Points}_{\text{total}} = (\text{Points}_{\text{batting}} + \text{Points}_{\text{bowling}} + \text{Points}_{\text{fielding}}) \times \text{Multiplier}$$
+
+- **Batting:** Runs (+1.0), 4s (+1.0), 6s (+2.0), 50-run bonus (+10.0), 100-run bonus (+25.0), Duck penalty (-5.0 for BAT/WK/AR).
+- **Bowling:** Wickets (+25.0), Maidens (+10.0), 3-wicket haul (+10.0), 5-wicket haul (+25.0), Economy $\le 4.0$ (+10.0), Economy $\ge 10.0$ (-10.0).
+- **Fielding:** Catches (+10.0), Stumpings (+15.0), Direct Run-outs (+15.0), Indirect Run-outs (+10.0).
+- **Multipliers:** Captain = **2.0x**, Vice-Captain = **1.5x**.
+- **Squad Validation:** Exactly 11 players, $\le 100.0$ credits budget, 1-4 WK, 3-6 BAT, 1-4 AR, 3-6 BOWL, max 7 per team.
+
+---
+
+## 7. Quickstart & Local Development
+
+### 7.1 Clone & Install
+```bash
+git clone https://github.com/parthkprogrammer/FanPulse_AI.git
+cd FanPulse_AI
+git checkout feat/fanpulse-development
+
+# Install dependencies
+npm install
+cd frontend && npm install && cd ..
+```
+
+### 7.2 Configure Environment
+Copy `frontend/.env.example` to `frontend/.env.local`:
+```ini
+VITE_SUPABASE_URL=https://zovgiiqamqfbqiopkooc.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_EDGE_FUNCTIONS_URL=https://zovgiiqamqfbqiopkooc.supabase.co/functions/v1
+VITE_APP_MODE=production
+```
+
+### 7.3 Start Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+---
+
+## 8. Verification & Quality Assurance Results
+
+```bash
+# Run 461 automated tests
+npm run test --prefix frontend
+
+# Run ESLint static analysis
+npm run lint --prefix frontend
+
+# Verify production bundle compilation
+npm run build --prefix frontend
+```
+
+- **Vitest:** **461 / 461 tests passed** (30 test suites).
+- **ESLint:** **0 errors**, 59 non-fatal stylistic warnings.
+- **Vite Build:** **0 errors**, production bundle compiled in 7.15s (335.89 kB gzipped).
+
+---
+
+## 9. Comprehensive Documentation Sitemap
+
+| Canonical Document | Description |
+| :--- | :--- |
+| [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) | Product vision, target users, problem statement, workflows, and limitations. |
+| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md) | Complete architectural blueprint, tier breakdown, request flows, and diagrams. |
+| [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) | PostgreSQL 16 schema, 9 applied migrations, 16 tables, 49 RLS policies, 47 indexes. |
+| [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) | Complete contract for all 9 deployed Supabase Edge Functions. |
+| [`docs/AI_IMPLEMENTATION.md`](docs/AI_IMPLEMENTATION.md) | Gemini 1.5 Flash integration, telemetry assembly, and prompt defenses. |
+| [`docs/FANTASY_SCORING.md`](docs/FANTASY_SCORING.md) | Deterministic scoring formulas, role constraints, and captain multipliers. |
+| [`docs/SETUP_AND_DEPLOYMENT.md`](docs/SETUP_AND_DEPLOYMENT.md) | Operational manual for Supabase linking, Edge Function deployment, and Vercel. |
+| [`docs/TESTING_AND_QA.md`](docs/TESTING_AND_QA.md) | Verification report covering 461 tests, build output, and browser audit evidence. |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | Supabase GoTrue Auth, Row-Level Security, JWT verification, and secret hygiene. |
+| [`docs/PROJECT_REPORT.md`](docs/PROJECT_REPORT.md) | Master consolidated technical report for the Dream11 assignment evaluation. |
+| [`docs/FANPULSE_AI_DREAM11_SUBMISSION.pdf`](docs/FANPULSE_AI_DREAM11_SUBMISSION.pdf) | Publication-quality 14-page PDF submission document with embedded screenshots. |
+| [`docs/archive/`](docs/archive/) | Archived Phase 0 prototype specifications (Java/Spring Boot exploration). |
+
+---
+
+## 10. Honest Limitations & Operational Boundary Disclosures
+
+1. **Sample Cricket Telemetry:** Current match fixtures and scorecards are populated with verified sample data (`supabase/seed.sql`). Real live feed streaming requires an active commercial licensing agreement with an authorized cricket data provider.
+2. **Generative Boundaries:** The AI model is strictly restricted to narrative and tactical explanations. It is **never** used to compute fantasy scores, modify database records, or predict future gambling/betting odds.
+3. **Authentication Boundary:** Public visitors can browse match scorecards, player profiles, and dashboard statistics. Fantasy team creation, team comparison, and user-specific AI conversations require an authenticated session.
+
+---
+
+*Submitted by Parth Kedar for the Dream11 Forward Deployed Engineer Intern Assignment.*

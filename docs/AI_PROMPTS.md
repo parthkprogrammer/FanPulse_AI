@@ -1,7 +1,7 @@
 # FanPulse AI — Prompt Engineering & Prompt Templates Specification
 
 > Authoritative prompt engineering design, reusable templates, and operational guardrails for the FanPulse AI conversational cricket match assistant.
-> Conforms to [AI_MODULE_DESIGN.md](file:///u:/Fanpulse_AI/docs/AI_MODULE_DESIGN.md), [DATABASE_DESIGN.md](file:///u:/Fanpulse_AI/docs/DATABASE_DESIGN.md), and [API_DESIGN.md](file:///u:/Fanpulse_AI/docs/API_DESIGN.md).
+> Conforms to [AI_MODULE_DESIGN.md](file:///u:/Fanpulse_AI/docs/AI_IMPLEMENTATION.md), [DATABASE_DESIGN.md](file:///u:/Fanpulse_AI/docs/DATABASE_DESIGN.md), and [API_DESIGN.md](file:///u:/Fanpulse_AI/docs/API_REFERENCE.md).
 
 ---
 

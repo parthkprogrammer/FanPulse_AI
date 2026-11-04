@@ -4,7 +4,7 @@
 **Version:** `1.0.0`  
 **Status:** Approved  
 **Author:** Senior PostgreSQL Performance Engineer  
-**References:** [DATABASE_DESIGN.md](file:///u:/Fanpulse_AI/docs/DATABASE_DESIGN.md), [API_DESIGN.md](file:///u:/Fanpulse_AI/docs/API_DESIGN.md), [REQUIREMENTS.md](file:///u:/Fanpulse_AI/docs/REQUIREMENTS.md)
+**References:** [DATABASE_DESIGN.md](file:///u:/Fanpulse_AI/docs/DATABASE_DESIGN.md), [API_DESIGN.md](file:///u:/Fanpulse_AI/docs/API_REFERENCE.md), [REQUIREMENTS.md](file:///u:/Fanpulse_AI/docs/REQUIREMENTS.md)
 
 ---
 

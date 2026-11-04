@@ -1,109 +1,99 @@
 # FanPulse AI — Technical Demonstration Script (3–5 Minutes)
 
-**Target Audience:** Dream11 Technical Interviewers, Forward Deployed Engineers & Technical Evaluators  
+**Target Audience:** Dream11 Technical Evaluators & Forward Deployed Engineering Leaders  
 **Live Production URL:** [https://fanpulseai-nine.vercel.app/dashboard](https://fanpulseai-nine.vercel.app/dashboard)  
-**Presenter Role:** Lead Full-Stack Architect & AI Engineer
+**Presenter Role:** Full-Stack & AI Systems Engineer (Candidate)
 
 ---
 
-## Demonstration Overview
+## Presentation Structure (3–5 Minutes)
 
-| Stage | Duration | Core Focus | Key Technical Concept |
+| Section | Timestamp | Focus Area | Key Technical Point |
 |:---|:---:|:---|:---|
-| **0. Hook & Architecture** | 0:30 | Problem statement & decoupled architecture | Deterministic fantasy scoring vs. Generative AI |
-| **1. Match Dashboard** | 0:45 | Telemetry ingestion & real-time dashboard | Live match telemetry, PostgREST queries |
-| **2. Scorecard & Player Profiling** | 0:45 | Detailed scorecard & career statistics | Relational integrity, GIN trigram indexing |
-| **3. Fantasy Team Builder** | 1:00 | 11-player lineup drafting & constraint checks | Server-side validation, Captain (2×) & VC (1.5×) multipliers |
-| **4. AI Match Assistant** | 1:00 | Structured Gemini LLM grounding | Zero-hallucination prompt assembly, RAG telemetry |
-| **5. Architecture & Closing** | 0:30 | Security, RLS, and forward-deployed vision | Row-Level Security, Edge runtime, Production metrics |
+| **1. Introduction** | 0:00 – 0:25 | Project title & mission | Unifying cricket intelligence & fantasy companions |
+| **2. Real Fan Problem** | 0:25 – 0:50 | Fragmentation & scoreboard opacity | 3–5 apps per match day; scores without tactical context |
+| **3. Why I Built FanPulse AI** | 0:50 – 1:15 | Motivation & decoupled vision | Bridging live telemetry, fantasy drafting, and grounded AI |
+| **4. Dashboard Demonstration** | 1:15 – 1:50 | Real-time UI & hero banner | MCG T20 fixture, live score status, sub-50ms index query |
+| **5. Match & Player Intelligence** | 1:50 – 2:30 | Detailed scorecards & profiles | Multi-innings scorecard, strike rates, GIN trigram athlete search |
+| **6. Fantasy Team Features** | 2:30 – 3:15 | Lineup drafting & rule checks | 11 players, role minimums, Captain (2×) & VC (1.5×) multipliers |
+| **7. AI Assistant Demonstration** | 3:15 – 4:00 | Natural language explanations | Grounded Gemini integration, zero-hallucination prompts |
+| **8. Technical Architecture** | 4:00 – 4:30 | Full-stack serverless foundation | React + Vite on Vercel, 9 Deno Edge Functions, Supabase PostgreSQL |
+| **9. Decoupled Scoring vs. Generative AI** | 4:30 – 4:55 | Mathematical vs. probabilistic logic | Zero mathematical hallucination; formulaic point ledger |
+| **10. Conclusion & Wrap-Up** | 4:55 – 5:15 | Impact & submission summary | Production deployment, 461 passing tests, enterprise readiness |
 
 ---
 
-## Step-by-Step Demonstration Script
+## Verbatim Presentation Script
 
-### Stage 0: Introduction & Core Architecture (0:00 – 0:30)
+### 1. Introduction (0:00 – 0:25)
+> *"Hello! My name is Parth Kedar, and today I’m demonstrating **FanPulse AI**, an AI-powered cricket match intelligence and fantasy companion that I built for the Dream11 Forward Deployed Engineer assignment.*
+> 
+> *FanPulse AI helps cricket fans understand match situations, player contributions, and fantasy performance by combining structured cricket data, deterministic fantasy scoring, and contextual AI explanations."*
 
-* **Action:** Open [https://fanpulseai-nine.vercel.app/dashboard](https://fanpulseai-nine.vercel.app/dashboard) in a clean browser window.
-* **Verbal Script:**
-  > *"Hello! Today I’m excited to show you **FanPulse AI**, a cricket match intelligence and fantasy companion platform designed for modern sports fans.*
-  > 
-  > *During live matches, cricket fans juggle multiple apps: one for scores, another for fantasy points, and Twitter or commentary feeds for tactical explanations. FanPulse AI solves this by unifying match intelligence, fantasy drafting, and natural language explanations.*
-  > 
-  > *From an engineering standpoint, our core decision was strict separation of concerns:*
-  > *1. **Fantasy points are 100% deterministic**—calculated by server-side logic in PostgreSQL and Supabase Edge Functions with zero hallucination risk.*
-  > *2. **Natural language explanations are handled by Google Gemini 1.5 Flash**, strictly grounded using structured match telemetry assembled server-side."*
+### 2. Real Fan Problem (0:25 – 0:50)
+> *"During live cricket matches, fans routinely juggle between multiple apps: one for live scores, another for fantasy points, and social feeds for tactical commentary. But more importantly, raw numbers on a scoreboard don't explain the game equation. A score of 184/4 doesn't convey momentum, who anchored the death overs, or why a specific bowler earned 98 fantasy points. Fans are left with fragmented data and no contextual bridge to their fantasy lineups."*
 
----
+### 3. Why I Built FanPulse AI (0:50 – 1:15)
+> *"I built FanPulse AI to solve this fragmentation with a single, coherent application. My goal was not just to display numbers, but to explain what is happening and why it matters—while ensuring that critical fantasy sports calculations remain 100% mathematically exact and audit-logged."*
 
-### Stage 1: Live Dashboard & Match Center (0:30 – 1:15)
+### 4. Dashboard Demonstration (1:15 – 1:50)
+> *(Action: Show the live Dashboard at `https://fanpulseai-nine.vercel.app/dashboard`)*
+> *"On the live dashboard, fans immediately see the high-leverage match state. Here in our featured India vs Australia 3rd T20I at the Melbourne Cricket Ground, India is chasing 178 and currently sits at 184/4. Notice our Top Performers widget and AI Insights preview. Under the hood, these telemetry cards are served directly from Supabase PostgreSQL, supported by composite indexes on `(status, match_date DESC)` to ensure instantaneous page rendering."*
 
-* **Action:** Scroll through the `/dashboard` view. Point to the **Featured Match Banner** (`India vs Australia — 3rd T20I`), the **Top Performers Widget**, and the **AI Insights Preview**. Click on **"Matches"** in the top navigation.
-* **Verbal Script:**
-  > *"Here on the main dashboard, users immediately see high-leverage match telemetry: live scores, required run rate, and current match situation. In our featured fixture, India is chasing 178 at the MCG, currently at 184/4 in the 19th over.*
-  > 
-  > *Clicking into our Match Center (`/matches`), users can filter across Live, Upcoming, and Completed fixtures. Telemetry is served via PostgREST queries against Supabase PostgreSQL, supported by composite indexes on `(status, match_date DESC)` to ensure sub-50ms query latency under load."*
+### 5. Match & Player Intelligence (1:50 – 2:30)
+> *(Action: Navigate to `/matches` and open the MCG fixture `/matches/m-ind-aus-t20`)*
+> *"Navigating into the Match Center, we can inspect both innings. We see Australia's 178/8 and India's response, complete with batter strike rates, dismissals, and bowler economy figures. Clicking on any athlete—such as Virat Kohli—opens their Player Profile. We display career statistics across 117 matches and 4,037 runs. In the database, we use a PostgreSQL GIN trigram index on player names to deliver instantaneous substring search across the player catalog."*
 
----
+### 6. Fantasy Team Features (2:30 – 3:15)
+> *(Action: Open Fantasy Builder at `/matches/m-ind-aus-t20/fantasy/create`)*
+> *"Our Fantasy Engine allows fans to draft custom 11-player lineups across both competing squads. Real-time composition safeguards enforce standard rules: at least 1 Wicket-Keeper, 1 Batter, 1 All-Rounder, 1 Bowler, and a maximum of 7 players from any single team.*
+> 
+> *When designating the Captain (for a 2.0× multiplier) and Vice-Captain (for a 1.5× multiplier), the client dispatches to our `validate-fantasy-team` Supabase Edge Function. Both the serverless gateway and PostgreSQL triggers enforce that squads never exceed 11 players."*
 
-### Stage 2: Deep Scorecard & Player Telemetry (1:15 – 2:00)
+### 7. AI Assistant Demonstration (3:15 – 4:00)
+> *(Action: Navigate to `/assistant`)*
+> *"The centerpiece of our platform is the AI Match Assistant. When a fan asks: 'Why did Virat Kohli earn 112 fantasy points?', the request hits our `ai-assistant` Edge Function.*
+> 
+> *The client does NOT send raw prompts to the LLM directly. Instead, our server-side `contextAssembler` queries PostgreSQL for the exact match state: Kohli’s 74* off 48 balls, 6 boundaries, milestone bonuses, and team innings totals. It wraps this telemetry in a token-budgeted `[MATCH_DATA]` envelope with temperature set to 0.2.*
+> 
+> *Gemini 1.5 Flash explains the exact tactical drivers—such as boundary bonuses and death-over strike rates—strictly adhering to facts with zero mathematical hallucination."*
 
-* **Action:** Click into the **India vs Australia** fixture (`/matches/m-ind-aus-t20`). Switch between **"1st Innings"** and **"2nd Innings"** scorecard tabs. Click on **"Virat Kohli"** to open his profile (`/players/p-virat-k`).
-* **Verbal Script:**
-  > *"In the Match Detail view, we break down both innings. You can see Australia's 178/8 and India's chase, complete with individual batter strike rates, dismissals, and bowler economy figures.*
-  > 
-  > *Clicking on any athlete—like Virat Kohli—takes us to their Player Profile. Notice the career statistics: 117 matches, 4,037 runs, and a 137.96 strike rate. In the database, we use a PostgreSQL GIN trigram index on player names to allow lightning-fast substring search across thousands of cricket players."*
+### 8. Technical Architecture (4:00 – 4:30)
+> *"Our architecture is fully modern and serverless:*
+> * *Frontend:* React 18 SPA built with Vite and Tailwind CSS, hosted globally on Vercel Edge.
+> * *Backend:* 9 specialized Supabase Edge Functions running on Deno v2.
+> * *Database:* Supabase PostgreSQL with 14 normalized relational tables, foreign key constraints, and Row-Level Security."*
 
----
+### 9. Why Deterministic Scoring & Generative AI Are Separated (4:30 – 4:55)
+> *"A fundamental engineering rule in FanPulse AI is the strict decoupling of arithmetic evaluation from generative AI. LLMs are probabilistic models; they are prone to arithmetic drift and hallucination. In fantasy sports, point calculations impact rankings and user trust. Therefore, fantasy points are computed 100% deterministically by backend business logic in TypeScript and SQL. Gemini is reserved exclusively for synthesizing natural language explanations of those verified calculations."*
 
-### Stage 3: Fantasy Team Builder & Validation Engine (2:00 – 3:00)
-
-* **Action:** Navigate to **"Fantasy Create"** (`/matches/m-ind-aus-t20/fantasy/create`). Draft 11 players across both teams (e.g. 1 WK, 4 BAT, 3 AR, 3 BOWL). Show the live composition counters. Assign **Virat Kohli** as Captain and **Jasprit Bumrah** as Vice-Captain. Click **"Save Team"**.
-* **Verbal Script:**
-  > *"Now let's look at the Fantasy Engine. Fans can draft an 11-player squad across both competing squads.*
-  > 
-  > *Notice the real-time composition safeguards: it enforces exactly 11 players, minimum role requirements (at least 1 Wicket-Keeper, 1 Batter, 1 All-Rounder, and 1 Bowler), and a maximum cap of 7 players from any single country.*
-  > 
-  > *When I designate Virat Kohli as Captain (2.0× multiplier) and Jasprit Bumrah as Vice-Captain (1.5× multiplier), the client dispatches to our `validate-fantasy-team` Supabase Edge Function.*
-  > 
-  > *Even if a user bypasses the client-side UI, the server-side Deno Edge Function and database constraints reject invalid lineups. Once validated, the team is saved atomically into `fantasy_teams` and `fantasy_team_players` protected by Row-Level Security."*
-
----
-
-### Stage 4: AI Match Assistant with Telemetry Grounding (3:00 – 4:00)
-
-* **Action:** Click **"AI Assistant"** in navigation (`/assistant`). Ensure `India vs Australia — 3rd T20I` is selected. Click the suggested prompt chip: *"Why did Virat Kohli earn 112 fantasy points?"* or type *"Explain the death overs chase and momentum shifts"*.
-* **Verbal Script:**
-  > *"Now for the centerpiece of our intelligence layer: the AI Match Assistant.*
-  > 
-  > *When I submit: 'Why did Virat Kohli earn 112 fantasy points?', the request hits our `ai-assistant` Edge Function. The client does NOT pass raw prompts to the LLM directly.*
-  > 
-  > *Instead, our server-side `contextAssembler.ts` queries PostgreSQL for the exact match state: India's 184/4, Kohli's 74* off 48 balls, boundaries, and official fantasy points. It wraps this in a strict `[MATCH_DATA]` token-budgeted payload with a low temperature of 0.2.*
-  > 
-  > *Look at the generated explanation: Gemini explains exactly why he earned 112 points—referencing his 74 runs, 6 fours, 2 sixes, milestone bonus, and strike rate—without hallucinating numbers. Furthermore, our output validator sanitizes gambling or odds terminology to uphold Dream11's responsible gaming standards."*
+### 10. Conclusion & Wrap-Up (4:55 – 5:15)
+> *"FanPulse AI is fully implemented, verified with 461 passing automated tests across 30 test files, and deployed live on Vercel and Supabase Cloud. It showcases how forward-deployed engineering, robust database design, and grounded AI can transform fantasy sports. Thank you, and I look forward to your questions!"*
 
 ---
 
-### Stage 5: Technical Highlights & Q&A Wrap-Up (4:00 – 4:30)
+## Prepared Answers to Tough Technical Questions
 
-* **Action:** Navigate back to the Dashboard or show the GitHub repository.
-* **Verbal Script:**
-  > *"To summarize our technical foundation:*
-  > * *Frontend:* React 18 SPA on Vite, deployed globally on Vercel Edge.
-  > * *Backend:* 9 Supabase Edge Functions on Deno with zero server maintenance.
-  > * *Database:* Supabase PostgreSQL with 14 normalized tables, foreign keys, and Row-Level Security.
-  > * *Quality Gates:* Full automated test suite of 461 tests across 30 test files with 100% pass rate in GitHub Actions CI.
-  > 
-  > *FanPulse AI demonstrates how modern full-stack architecture and grounded LLMs can elevate fantasy sports into an intelligent, immersive fan companion. I'd love to answer any questions about the implementation!"*
+#### Q1: "Why did you choose Supabase over a custom backend like Express or Spring Boot?"
+> **Answer:** *"For this application, Supabase provided enterprise-grade PostgreSQL with built-in Row-Level Security, GoTrue authentication, and instant PostgREST API capabilities out of the box. Coupled with Deno Edge Functions, it allowed me to build a globally distributed, serverless backend without managing persistent servers, while maintaining full SQL relational power and sub-second query latency."*
 
----
+#### Q2: "Why Google Gemini API instead of OpenAI GPT-4?"
+> **Answer:** *"Gemini 1.5 Flash offers industry-leading processing speed, a large token context window, and highly competitive pricing. In sports companion apps, sub-second latency is critical. Gemini Flash allowed us to pass rich structured match telemetry (`[MATCH_DATA]`) and receive grounded, lively responses within our 12-second timeout window."*
 
-## Potential Evaluator Questions & Prepared Answers
+#### Q3: "How do you prevent AI hallucinations?"
+> **Answer:** *"We use a three-tier anti-hallucination defense:
+> 1. **Prompt Injection & Length Sanitization:** User questions are bounded to 250 characters and stripped of system prompt injection attempts.
+> 2. **Strict Telemetry Grounding:** We assemble verified PostgreSQL records into a structured `[MATCH_DATA]` block and set the model temperature to a low 0.2.
+> 3. **Output Validation & Guardrails:** All generated text is scanned by regex sanitizers in `outputValidator.ts` to block betting, odds, and gambling terms, falling back to safe sports analysis if ungrounded claims are detected."*
 
-#### Q1: "Why not let Gemini calculate the fantasy points directly?"
-> **Answer:** *"LLMs are probabilistic autoregressive models, which makes them inherently prone to arithmetic drift and hallucinations. In fantasy sports, point calculations impact leaderboards, rankings, and user trust. Therefore, all mathematical scoring is computed deterministically in backend TypeScript/SQL using verified formulas, while Gemini is reserved strictly for natural language synthesis of that verified data."*
+#### Q4: "Why is fantasy scoring deterministic rather than AI-generated?"
+> **Answer:** *"Fantasy sports rules are mathematical contracts. Points must be repeatable, transparent, and auditable down to the decimal point. Entrusting points to an LLM introduces non-deterministic variation and arithmetic errors. By computing points deterministically in backend TypeScript/SQL and persisting them in `fantasy_player_points` with a JSON breakdown, we maintain 100% mathematical integrity."*
 
-#### Q2: "What happens if the Gemini API experiences an outage or latency spike?"
-> **Answer:** *"Our `geminiClient.ts` has a built-in 12-second timeout, exponential backoff retries for transient 503/429 errors, and a circuit breaker that trips after 5 consecutive failures for 30 seconds. If unavailable, the UI gracefully informs the user that match explanations are temporarily queued while all match scores, tables, and fantasy leaderboards remain 100% operational."*
+#### Q5: "How does Row-Level Security (RLS) protect user data?"
+> **Answer:** *"In PostgreSQL, RLS policies are applied at the database engine level. On tables like `fantasy_teams`, `fantasy_team_players`, and `ai_conversations`, the policy enforces `auth.uid() = user_id`. Even if a malicious user tampers with the frontend client or makes direct PostgREST calls, the database itself filters out any rows that do not belong to the caller's verified JWT token."*
 
-#### Q3: "Why did the Fantasy Comparison view return 'teams not found in the database'?"
-> **Answer:** *"Because Row-Level Security (RLS) is strictly enforced on `fantasy_teams`. A user can only compare squads that have been persisted under their authenticated `user_id` for that specific fixture. If two squads haven't been created yet in the database, the Edge Function legitimately returns a 404 to protect user privacy and avoid comparing non-existent records."*
+#### Q6: "What would you improve or build next as a Forward Deployed Engineer at Dream11?"
+> **Answer:** *"Three key priorities:
+> 1. **Real-time WebSockets:** Replace polling with Supabase Realtime WebSocket subscriptions to stream ball-by-ball animations and instant leaderboard updates.
+> 2. **Live Feed Production Integration:** Connect the `sync-cricket-data` adapter to Dream11's live enterprise cricket provider feeds.
+> 3. **Personalized Squad Recommendations:** Build pre-match AI intelligence that analyzes pitch wear and historical batter-vs-bowler matchups to suggest strategic differential picks."*

@@ -153,14 +153,14 @@ AI is used as an **explainer**, not a predictor. The AI component receives struc
 
 | Layer | Technology | Rationale |
 |-------|------------|-----------|
-| **Frontend** | React, TypeScript, Tailwind CSS | Component-driven UI with type safety and utility-first styling. |
-| **Backend** | Java, Spring Boot | Mature, enterprise-grade framework for REST APIs, dependency injection, and data access. |
-| **Security** | Spring Security | Authentication and authorization for user accounts and API endpoints. |
-| **Database** | PostgreSQL | Reliable relational database for structured cricket and user data. |
-| **AI Integration** | TBD (LLM API) | AI service integration for generating match explanations from structured data. |
+| **Frontend** | React 18, Vite 5, Tailwind CSS 3.4 | Modern, fast component-driven UI with instant HMR and optimized production bundling. |
+| **Backend & Compute** | Supabase Edge Functions (Deno / TypeScript) | 9 serverless Edge Functions providing sub-100ms cold starts, zero server maintenance, and unified TypeScript contracts. |
+| **Security & Auth** | Supabase GoTrue Auth & PostgreSQL RLS | Native JWT authentication and database engine-level Row-Level Security enforcing tenant isolation. |
+| **Database** | Supabase PostgreSQL 16 | ACID-compliant relational persistence for cricket telemetry, player profiles, and fantasy squads. |
+| **AI Integration** | Google Gemini 1.5 Flash API | Server-side integration via Edge Functions with strict prompt delimiters and telemetry grounding. |
 
 > [!NOTE]
-> The specific AI provider and model will be decided during the architecture and design phase. The system will be designed to allow swapping AI providers without major refactoring.
+> **Architectural Evolution Note:** During initial Phase 0 planning, a Java/Spring Boot prototype was considered. During Phase 2, the production implementation transitioned to Supabase Edge Functions and Supabase PostgreSQL for streamlined cloud deployment on Vercel and native Row-Level Security. (See [docs/SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)).
 
 ---
 
