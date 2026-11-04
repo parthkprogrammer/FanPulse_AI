@@ -252,6 +252,145 @@ describe('FanPulse AI — Gemini API Match Assistant Subsystem', () => {
       expect(result).not.toBeNull();
       expect(result.metadata.id).toBe('m-ind-aus-t20');
     });
+
+    it('regression: includes verified match_innings record and reports positive inningsCount', async () => {
+      const mockSelectCalls = [];
+      const mockSupabase = {
+        from: vi.fn((table) => {
+          return {
+            select: vi.fn((columns) => {
+              mockSelectCalls.push({ table, columns });
+              return {
+                eq: vi.fn((_field, _val) => {
+                  return {
+                    maybeSingle: vi.fn(async () => {
+                      if (table === 'matches') {
+                        return {
+                          data: {
+                            id: 'm-ind-aus-t20',
+                            title: 'India vs Australia — 3rd T20I',
+                            format: 'T20',
+                            status: 'LIVE',
+                            venue: 'Melbourne Cricket Ground, Melbourne',
+                            toss_decision: 'FIELD',
+                            toss_winner: { id: 'team-aus', name: 'Australia', code: 'AUS' },
+                            result_summary: 'India need 5 runs in 10 balls',
+                            team1: { id: 'team-ind', name: 'India', code: 'IND' },
+                            team2: { id: 'team-aus', name: 'Australia', code: 'AUS' },
+                          },
+                          error: null,
+                        };
+                      }
+                      return { data: null, error: null };
+                    }),
+                    order: vi.fn(async () => {
+                      if (table === 'match_innings') {
+                        return {
+                          data: [
+                            {
+                              id: 'inn-1',
+                              innings_number: 1,
+                              total_runs: 178,
+                              total_wickets: 8,
+                              overs_completed: 20.0,
+                              extras: 6,
+                              is_completed: true,
+                              batting_team: { id: 'team-aus', name: 'Australia', code: 'AUS' },
+                              bowling_team: { id: 'team-ind', name: 'India', code: 'IND' },
+                            },
+                            {
+                              id: 'inn-2',
+                              innings_number: 2,
+                              total_runs: 184,
+                              total_wickets: 4,
+                              overs_completed: 19.2,
+                              extras: 8,
+                              is_completed: true,
+                              batting_team: { id: 'team-ind', name: 'India', code: 'IND' },
+                              bowling_team: { id: 'team-aus', name: 'Australia', code: 'AUS' },
+                            },
+                          ],
+                          error: null,
+                        };
+                      }
+                      if (table === 'player_match_statistics') {
+                        return {
+                          data: [
+                            {
+                              player_id: 'p-vk',
+                              innings_number: 2,
+                              runs_scored: 74,
+                              balls_faced: 48,
+                              fours: 6,
+                              sixes: 2,
+                              strike_rate: 154.2,
+                              is_out: false,
+                              dismissal_type: 'NOT_OUT',
+                              overs_bowled: 0,
+                              maidens: 0,
+                              runs_conceded: 0,
+                              wickets_taken: 0,
+                              player: { id: 'p-vk', name: 'Virat Kohli', primary_role: 'BATTER' },
+                              team: { id: 'team-ind', name: 'India', code: 'IND' },
+                            },
+                          ],
+                          error: null,
+                        };
+                      }
+                      if (table === 'fantasy_player_points') {
+                        return {
+                          data: [
+                            {
+                              player_id: 'p-vk',
+                              base_points: 112,
+                              final_points: 112,
+                              player: { name: 'Virat Kohli', primary_role: 'BATTER' },
+                            },
+                          ],
+                          error: null,
+                        };
+                      }
+                      return { data: [], error: null };
+                    }),
+                  };
+                }),
+              };
+            }),
+          };
+        }),
+      };
+
+      const result = await assembleMatchContext(mockSupabase, 'm-ind-aus-t20');
+
+      expect(result).not.toBeNull();
+      // Verifies inningsCount is 2 and not 0
+      expect(result.scores.inningsCount).toBe(2);
+      expect(result.scores.summary).toContain('India: 184/4 (19.2 ov)');
+      expect(result.scores.summary).toContain('Australia: 178/8 (20 ov)');
+      expect(result.innings).toHaveLength(2);
+
+      // Verify the specific verified record in India innings
+      const indInnings = result.innings.find((inn) => inn.team === 'India');
+      expect(indInnings).toBeDefined();
+      expect(indInnings.inningsNumber).toBe(2);
+      expect(indInnings.total).toBe('184/4');
+      expect(indInnings.overs).toBe('19.2');
+      expect(indInnings.runRate).toBeCloseTo(184 / 19.2, 2);
+      expect(result.dataFreshness).toBe('AUTHORITATIVE_POSTGRES_RECORDS');
+
+      // Verify exact schema column names queried from PostgREST
+      const inningsSelect = mockSelectCalls.find((c) => c.table === 'match_innings');
+      expect(inningsSelect).toBeDefined();
+      expect(inningsSelect.columns).toContain('total_wickets');
+      expect(inningsSelect.columns).toContain('overs_completed');
+      expect(inningsSelect.columns).not.toMatch(/\bwickets\b(?!_)/);
+      expect(inningsSelect.columns).not.toMatch(/\bovers\b(?!_)/);
+
+      const statsSelect = mockSelectCalls.find((c) => c.table === 'player_match_statistics');
+      expect(statsSelect).toBeDefined();
+      expect(statsSelect.columns).toContain('dismissal_type');
+      expect(statsSelect.columns).not.toContain('dismissal_text');
+    });
   });
 
   // =========================================================================
