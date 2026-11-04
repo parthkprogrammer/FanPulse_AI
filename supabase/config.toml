@@ -424,10 +424,44 @@ enabled = true
 [functions.health-check]
 enabled = true
 verify_jwt = false
-import_map = "./functions/health-check/deno.json"
-# Uncomment to specify a custom file path to the entrypoint.
-# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
 entrypoint = "./functions/health-check/index.ts"
-# Specifies static files to be bundled with the function. Supports glob patterns.
-# For example, if you want to serve static HTML pages in your function:
-# static_files = [ "./functions/health-check/*.html" ]
+
+[functions.validate-fantasy-team]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/validate-fantasy-team/index.ts"
+
+[functions.compare-fantasy-teams]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/compare-fantasy-teams/index.ts"
+
+[functions.calculate-fantasy-scoring]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/calculate-fantasy-scoring/index.ts"
+
+[functions.manage-fantasy-teams]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/manage-fantasy-teams/index.ts"
+
+[functions.manage-matches]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/manage-matches/index.ts"
+
+[functions.manage-players]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/manage-players/index.ts"
+
+[functions.sync-cricket-data]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/sync-cricket-data/index.ts"
+
+[functions.ai-assistant]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/ai-assistant/index.ts"

@@ -103,6 +103,22 @@ describe('Match Center & Match Details UI Tests', () => {
       expect(screen.getByText(/Network error connecting to cricket feeds/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Retry Connection/i })).toBeInTheDocument();
     });
+
+    it('provides accessibility basics: accessible filter controls and search inputs', async () => {
+      renderMatchCenter();
+
+      await screen.findByText(/Cricket Match Center/i);
+
+      // Search input has accessible placeholder
+      const searchInput = screen.getByPlaceholderText(/Search teams, countries, venues/i);
+      expect(searchInput).toBeInTheDocument();
+
+      // Status buttons have accessible names
+      expect(screen.getByRole('button', { name: /^All Matches$/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Live$/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Upcoming$/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Completed$/i })).toBeInTheDocument();
+    });
   });
 
   describe('MatchDetailPage Component', () => {

@@ -29,12 +29,15 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+!.env*.example
 frontend/.env
 frontend/.env.*
 !frontend/.env.example
+!frontend/.env*.example
 supabase/.env
 supabase/.env.*
 !supabase/.env.example
+!supabase/.env*.example
 *.pem
 *.key
 *.p12

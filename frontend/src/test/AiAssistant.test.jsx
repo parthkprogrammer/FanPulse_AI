@@ -170,4 +170,33 @@ describe('AiAssistantPage Component', () => {
     // Custom user message should be cleared, returning to welcome message
     expect(screen.queryByText('Test question')).not.toBeInTheDocument();
   });
+
+  it('disables submit button when question is empty or contains only whitespace', async () => {
+    renderAiAssistant();
+
+    const input = await screen.findByPlaceholderText(/Ask anything about momentum/i);
+    const submitBtn = screen.getByRole('button', { name: /Ask AI/i });
+
+    // Initially empty -> disabled
+    expect(submitBtn).toBeDisabled();
+
+    // Whitespace only -> disabled
+    fireEvent.change(input, { target: { value: '     ' } });
+    expect(submitBtn).toBeDisabled();
+
+    // Valid text -> enabled
+    fireEvent.change(input, { target: { value: 'Valid tactical query' } });
+    expect(submitBtn).not.toBeDisabled();
+  });
+
+  it('provides accessibility basics: accessible textarea label and button roles', async () => {
+    renderAiAssistant();
+
+    const textarea = await screen.findByLabelText(/Ask FanPulse AI a question/i);
+    expect(textarea).toBeInTheDocument();
+    expect(textarea).toHaveAttribute('rows', '2');
+
+    const submitBtn = screen.getByRole('button', { name: /Ask AI/i });
+    expect(submitBtn).toBeInTheDocument();
+  });
 });

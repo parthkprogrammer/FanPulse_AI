@@ -1,0 +1,31 @@
+{
+  "name": "fanpulse-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FanPulse AI — Real-time Cricket Analytics, Deterministic Fantasy Scoring & Grounded AI Assistant",
+  "scripts": {
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "lint": "npm run lint --prefix frontend",
+    "preview": "npm run preview --prefix frontend",
+    "test": "npm run test --prefix frontend",
+    "supabase:status": "npx supabase status",
+    "supabase:start": "npx supabase start",
+    "supabase:stop": "npx supabase stop",
+    "supabase:reset": "npx supabase db reset",
+    "supabase:diff": "npx supabase db diff",
+    "supabase:migrate": "npx supabase migration up",
+    "supabase:functions": "npx supabase functions serve --env-file ./supabase/.env.local"
+  },
+  "keywords": [
+    "cricket",
+    "fantasy-sports",
+    "supabase",
+    "gemini-ai",
+    "react",
+    "vite"
+  ],
+  "author": "FanPulse AI Team",
+  "license": "UNLICENSED"
+}
+

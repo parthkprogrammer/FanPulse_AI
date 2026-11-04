@@ -259,7 +259,7 @@ Deno.serve(async (req: Request) => {
       // Fetch player name and role
       const { data: player } = await callerClient
         .from('players')
-        .select('id, name, role')
+        .select('id, name, primary_role')
         .eq('id', playerId)
         .maybeSingle();
 
@@ -276,7 +276,7 @@ Deno.serve(async (req: Request) => {
         DEFAULT_SCORING_RULES,
         {
           playerName: player?.name || 'Player',
-          role: player?.role || 'BATTER',
+          role: player?.primary_role || 'BATTER',
         }
       );
 
