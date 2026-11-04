@@ -119,3 +119,4 @@ The Gemini client implementation in `_shared/ai/geminiClient.ts` incorporates en
 - [API Reference](API_REFERENCE.md)
 - [Database Schema](DATABASE_SCHEMA.md)
 - [Security Architecture](SECURITY.md)
+

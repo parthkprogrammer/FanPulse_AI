@@ -10,24 +10,24 @@ FanPulse AI is built as a serverless, decoupled cloud platform combining a high-
 
 ```mermaid
 flowchart TD
-    subgraph Client Layer [Vercel Global CDN]
-        React[React 18.3.1]
-        Vite[Vite 5.4.10]
-        Tailwind[Tailwind CSS 3.4.14]
-        Router[React Router 6.27.0]
-        Charts[Recharts 2.13.0]
-        Icons[Lucide React 0.453.0]
+    subgraph CLIENT["Client Layer - Vercel Global CDN"]
+        React["React 18.3.1"]
+        Vite["Vite 5.4.10"]
+        Tailwind["Tailwind CSS 3.4.14"]
+        Router["React Router 6.27.0"]
+        Charts["Recharts 2.13.0"]
+        Icons["Lucide React 0.453.0"]
     end
 
-    subgraph Backend & Auth Layer [Supabase Cloud]
-        GoTrue[Supabase GoTrue Auth]
-        Edge[9 Supabase Edge Functions<br/>Deno / TypeScript]
-        Postgres[(PostgreSQL 16+ Engine)]
-        RLS[Row Level Security Engine]
+    subgraph BACKEND["Backend & Auth Layer - Supabase Cloud"]
+        GoTrue["Supabase GoTrue Auth"]
+        Edge["9 Supabase Edge Functions<br/>Deno / TypeScript"]
+        Postgres[("PostgreSQL 16+ Engine")]
+        RLS["Row Level Security Engine"]
     end
 
-    subgraph Intelligence Layer [Google Cloud]
-        Gemini[Gemini 1.5 Flash API]
+    subgraph AI_LAYER["Intelligence Layer - Google Cloud"]
+        Gemini["Gemini 1.5 Flash API"]
     end
 
     React --> Edge

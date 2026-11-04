@@ -12,7 +12,7 @@ FanPulse AI is structured around a decoupled, serverless micro-services paradigm
 
 ```mermaid
 flowchart TD
-    subgraph ClientLayer ["Client Layer (Presentation Tier)"]
+    subgraph ClientLayer["Client Layer (Presentation Tier)"]
         UI["React 18 SPA (Vite + Tailwind CSS)"]
         Router["React Router v6"]
         AxiosClient["Axios API Client (Bearer Token Interceptor)"]
@@ -21,7 +21,7 @@ flowchart TD
         UI --> SupabaseJS
     end
 
-    subgraph EdgeTier ["Backend Serverless Tier (Supabase Deno Runtime)"]
+    subgraph EdgeTier["Backend Serverless Tier (Supabase Deno Runtime)"]
         CORS["CORS Preflight & Rate Limiting"]
         AuthV["GoTrue JWT Verifier (verifyAuth)"]
         
@@ -39,7 +39,7 @@ flowchart TD
         AuthV --> EF1 & EF2 & EF3 & EF4 & EF5 & EF6 & EF7 & EF8 & EF9
     end
 
-    subgraph DatabaseTier ["Authoritative Storage & Database Tier (PostgreSQL 16)"]
+    subgraph DatabaseTier["Authoritative Storage & Database Tier (PostgreSQL 16)"]
         RLS["Row Level Security (RLS Engine)"]
         TablesMatch["matches, match_innings, ball_events"]
         TablesPlayer["players, match_rosters, player_match_statistics"]
@@ -52,7 +52,7 @@ flowchart TD
         RLS --> TablesMatch & TablesPlayer & TablesFantasy & TablesAI & Procedures
     end
 
-    subgraph ExternalServices ["External Intelligence & Telemetry Tier"]
+    subgraph ExternalServices["External Intelligence & Telemetry Tier"]
         GeminiAPI["Google Gemini API (gemini-1.5-flash)"]
         CricketFeed["External Cricket Provider (CricAPI / Sample Data Provider)"]
 

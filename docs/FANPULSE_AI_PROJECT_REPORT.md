@@ -122,7 +122,7 @@ graph TD
     Client -->|Axios REST / Bearer JWT| EdgeGateway["Supabase Edge Functions (Deno Runtime)"]
     Client -->|Supabase-JS Public Reads| PostgREST["Supabase PostgREST Engine"]
 
-    subgraph EdgeRuntime ["Serverless Micro-Services (9 Edge Functions)"]
+    subgraph EdgeRuntime["Serverless Micro-Services (9 Edge Functions)"]
         EdgeGateway --> HCheck["health-check"]
         EdgeGateway --> VTeam["validate-fantasy-team"]
         EdgeGateway --> CTeam["compare-fantasy-teams"]
@@ -134,13 +134,13 @@ graph TD
         EdgeGateway --> AIAssist["ai-assistant"]
     end
 
-    subgraph DataStorage ["Authoritative Storage (PostgreSQL 16)"]
+    subgraph DataStorage["Authoritative Storage (PostgreSQL 16)"]
         PostgREST --> RLSFilter["Row Level Security (RLS)"]
         VTeam & CTeam & CScore & MTeam & MMatch & MPlayer & SData & AIAssist --> RLSFilter
         RLSFilter --> Tables["14 Relational Tables (matches, rosters, innings, fantasy)"]
     end
 
-    subgraph ExternalIntelligence ["External Providers"]
+    subgraph ExternalIntelligence["External Providers"]
         AIAssist -->|JSON Payload [MATCH_DATA]| Gemini["Google Gemini 1.5 Flash API"]
         SData -->|Sync Telemetry| CricketAPI["External Cricket Provider"]
     end

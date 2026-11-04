@@ -271,3 +271,4 @@ Generates natural-language match explanations grounded in structured database te
 - [AI Implementation](AI_IMPLEMENTATION.md)
 - [Fantasy Scoring](FANTASY_SCORING.md)
 - [Security Architecture](SECURITY.md)
+

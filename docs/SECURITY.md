@@ -10,25 +10,25 @@ FanPulse AI enforces a defense-in-depth security model spanning the browser runt
 
 ```mermaid
 flowchart TD
-    subgraph Browser Perimeter
+    subgraph BROWSER["Browser Perimeter"]
         SPA[React 18 SPA]
         PR[React Router ProtectedRoute Guard]
         ZOD[Zod Input Validation]
     end
 
-    subgraph Transport & API Security
+    subgraph TRANSPORT["Transport & API Security"]
         TLS[TLS 1.3 Encryption]
         CORS[CORS Whitelist / Options Preflight]
         JWT[GoTrue Bearer JWT Verification]
     end
 
-    subgraph Compute & Logic Isolation
+    subgraph COMPUTE["Compute & Logic Isolation"]
         EDGE[Supabase Edge Functions Sandbox]
         DELIM[AI Prompt Delimiter Isolation]
         SECRETS[Vaulted Backend Secrets]
     end
 
-    subgraph Data & Storage Security
+    subgraph STORAGE["Data & Storage Security"]
         RLS[PostgreSQL Row-Level Security]
         CASCADE[Referential Integrity & Cascading Deletes]
     end
@@ -153,3 +153,4 @@ To protect the Gemini-powered AI Match Assistant from adversarial prompt manipul
 - [API Reference](API_REFERENCE.md)
 - [Database Schema](DATABASE_SCHEMA.md)
 - [AI Implementation](AI_IMPLEMENTATION.md)
+

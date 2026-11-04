@@ -60,25 +60,25 @@ To ensure total due diligence, we examine the four specific potential knowledge 
 
 ```mermaid
 flowchart TD
-    subgraph K1 [1. Cricket Rules]
+    subgraph K1["1. Cricket Rules"]
         R1[MCC 42 Laws / ICC Playing Conditions]
         R1 --> S1[Pre-trained in Gemini + Static Prompts]
         S1 --> V1[Verdict: No Vector RAG Needed]
     end
 
-    subgraph K2 [2. Cricket Glossary]
+    subgraph K2["2. Cricket Glossary"]
         R2[Yorker, Googly, Carrom Ball, Mankad, Powerplay]
         R2 --> S2[Pre-trained in Foundation LLM]
         S2 --> V2[Verdict: No Vector RAG Needed]
     end
 
-    subgraph K3 [3. Fantasy Scoring Rules]
+    subgraph K3["3. Fantasy Scoring Rules"]
         R3[Point Tables, Multipliers, Boundary Bonuses]
         R3 --> S3[Calculated Server-Side in Deno/Postgres]
         S3 --> V3[Verdict: Vector RAG Strictly Prohibited]
     end
 
-    subgraph K4 [4. Historical Reference Material]
+    subgraph K4["4. Historical Reference Material"]
         R4[150 Years of Archives / 100,000+ Essays]
         R4 --> S4[Current: 10-50 matches in Postgres<br>Future: 100k+ Unstructured Docs]
         S4 --> V4[Verdict: Justified in Phase 3+ Only]

@@ -54,7 +54,7 @@ FanPulse AI converges these disconnected verticals into four unified product pil
 
 ```mermaid
 flowchart TD
-    subgraph FanPulse AI Companion
+    subgraph COMPANION["FanPulse AI Companion"]
         A[Live Match Center & Scorecards]
         B[Player Intelligence & Stats]
         C[Deterministic Fantasy Engine]
@@ -135,3 +135,4 @@ To maintain absolute technical integrity, the following limitations are explicit
 - [API Reference](API_REFERENCE.md)
 - [AI Implementation](AI_IMPLEMENTATION.md)
 - [Fantasy Scoring](FANTASY_SCORING.md)
+

@@ -10,7 +10,7 @@ FanPulse AI employs a multi-tiered Quality Assurance (QA) pipeline spanning unit
 
 ```mermaid
 flowchart TD
-    subgraph Testing Pyramid
+    subgraph PYRAMID["Testing Pyramid"]
         Unit["Unit & Domain Logic<br/>(Scoring, Validation, Utilities)"]
         Comp["Component & UI Testing<br/>(React Testing Library + User Event)"]
         Integ["Route & Security Integration<br/>(React Router, ProtectedRoute, Edge Mocks)"]
@@ -100,3 +100,4 @@ It is vital to distinguish between automated tests and real-world production int
 - [API Reference](API_REFERENCE.md)
 - [Fantasy Scoring](FANTASY_SCORING.md)
 - [Security Architecture](SECURITY.md)
+

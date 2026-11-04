@@ -93,7 +93,7 @@ All screenshots below represent genuine, authentic captures from the live produc
 
 ```mermaid
 graph TD
-    subgraph Frontend
+    subgraph FRONTEND["Frontend"]
         React[React 18.3]
         Vite[Vite 5.4]
         Tailwind[Tailwind CSS 3.4]
@@ -101,18 +101,18 @@ graph TD
         Recharts[Recharts 2.13]
     end
 
-    subgraph Backend & Database
+    subgraph BACKEND["Backend & Database"]
         Postgres[(PostgreSQL 16)]
         Edge[9 Supabase Edge Functions<br/>Deno / TypeScript]
         Auth[Supabase GoTrue Auth]
         RLS[Row Level Security Engine]
     end
 
-    subgraph AI Intelligence
+    subgraph AI_LAYER["AI Intelligence"]
         Gemini[Google Gemini 1.5 Flash API]
     end
 
-    subgraph Infrastructure
+    subgraph INFRA["Infrastructure"]
         Vercel[Vercel Global Edge Network]
         SupabaseCloud[Supabase Cloud Platform]
     end
@@ -180,3 +180,4 @@ During development and the production audit, four key technical challenges were 
 - [Setup and Deployment](SETUP_AND_DEPLOYMENT.md)
 - [Testing and QA](TESTING_AND_QA.md)
 - [Security Architecture](SECURITY.md)
+

@@ -10,15 +10,15 @@ FanPulse AI is structured as a modern, decoupled cloud application combining a h
 
 ```mermaid
 flowchart TD
-    subgraph Client Layer [Vercel Edge Network]
-        SPA["React 18 SPA (Vite + Tailwind CSS)<br/>React Router · Axios · Recharts"]
+    subgraph CLIENT["Client Layer - Vercel Edge Network"]
+        SPA["React 18 SPA<br/>Vite + Tailwind CSS<br/>React Router + Axios + Recharts"]
     end
 
-    subgraph Auth & Security Boundary [Supabase Auth]
-        GOTRUE["GoTrue Auth Service<br/>JWT Tokens · Session Storage"]
+    subgraph AUTH["Authentication - Supabase Auth"]
+        GOTRUE["GoTrue Auth Service<br/>JWT Tokens and Session Management"]
     end
 
-    subgraph Serverless Edge Tier [Supabase Edge Functions (Deno / TypeScript)]
+    subgraph EDGE["Serverless Edge Tier - Supabase Edge Functions"]
         HCHECK["health-check"]
         MMATCH["manage-matches"]
         MPLAYER["manage-players"]
@@ -27,43 +27,46 @@ flowchart TD
         FCOMP["compare-fantasy-teams"]
         FSCORE["calculate-fantasy-scoring"]
         SYNC["sync-cricket-data"]
-        AI["ai-assistant<br/>(Context Assembler)"]
+        AI["ai-assistant<br/>Context Assembly"]
     end
 
-    subgraph Data & Storage Tier [Supabase Managed PostgreSQL 16]
-        RLS["Row Level Security (RLS) Engine"]
-        PUB_TABLES[("Public Cricket Data<br/>teams · venues · matches<br/>match_innings · players<br/>match_player_stats")]
-        USER_TABLES[("User Private Data<br/>user_profiles · fantasy_teams<br/>fantasy_team_players<br/>ai_conversations · ai_messages")]
+    subgraph DATABASE["Data Layer - Supabase PostgreSQL"]
+        RLS["Row Level Security (RLS)"]
+        PUB["Public Cricket Data<br/>Teams, Players, Matches<br/>Innings and Match Statistics"]
+        USERDATA["User Private Data<br/>Fantasy Teams and Team Players<br/>AI Conversations and Messages"]
     end
 
-    subgraph External Intelligence Tier [Google AI Studio]
-        GEMINI["Gemini 1.5 Flash API<br/>Bounded Grounded Generation"]
+    subgraph AI_LAYER["External AI Service - Google AI"]
+        GEMINI["Google Gemini API<br/>Contextual Match Analysis"]
     end
 
-    %% Client Interactions
-    SPA -->|Public Route Requests| MMATCH
-    SPA -->|Public Route Requests| MPLAYER
-    SPA -->|Direct Read-Only / Anon Client| PUB_TABLES
-    SPA -->|User Authentication| GOTRUE
-    SPA -->|Authenticated API (Bearer JWT)| FBUILD
-    SPA -->|Authenticated API (Bearer JWT)| FMGMT
-    SPA -->|Authenticated API (Bearer JWT)| FCOMP
-    SPA -->|Authenticated API (Bearer JWT)| AI
+    SPA -->|"Authentication"| GOTRUE
+    GOTRUE -->|"JWT Session"| SPA
 
-    %% Edge to DB
-    MMATCH --> PUB_TABLES
-    MPLAYER --> PUB_TABLES
-    FBUILD --> PUB_TABLES
+    SPA -->|"Public API Requests"| MMATCH
+    SPA -->|"Public API Requests"| MPLAYER
+    SPA -->|"Read-Only Queries"| PUB
+
+    SPA -->|"Authenticated Requests"| FBUILD
+    SPA -->|"Authenticated Requests"| FMGMT
+    SPA -->|"Authenticated Requests"| FCOMP
+    SPA -->|"Authenticated Requests"| AI
+
+    MMATCH --> PUB
+    MPLAYER --> PUB
+    FBUILD --> RLS
     FMGMT --> RLS
     FCOMP --> RLS
-    FSCORE --> PUB_TABLES
-    SYNC --> PUB_TABLES
-    RLS --> USER_TABLES
+    FSCORE --> PUB
+    SYNC --> PUB
 
-    %% Edge to External AI
-    AI -->|Assemble Grounded Telemetry| PUB_TABLES
-    AI -->|Prompt + Injected Telemetry| GEMINI
-    GEMINI -->|Contextual Analysis| AI
+    RLS --> USERDATA
+    RLS --> PUB
+
+    AI -->|"Retrieve Structured Match Context"| PUB
+    AI -->|"Secure Server-Side API Request"| GEMINI
+    GEMINI -->|"Generated Match Explanation"| AI
+    AI -->|"Contextual Response"| SPA
 ```
 
 ---

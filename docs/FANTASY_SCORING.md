@@ -115,3 +115,4 @@ $$\text{Squad Total} = \sum_{i=1}^{11} \text{Player Total}_i$$
 - [System Architecture](SYSTEM_ARCHITECTURE.md)
 - [API Reference](API_REFERENCE.md)
 - [Testing and QA](TESTING_AND_QA.md)
+
