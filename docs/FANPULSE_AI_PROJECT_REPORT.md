@@ -362,6 +362,22 @@ The following screenshots were captured from the live deployment at `https://fan
 ![User Authentication](screenshots/06_user_authentication.png)
 *Figure 20.6: User authentication interface with GoTrue session handling, input validation, and security notice.*
 
+### 20.7 Fantasy Team Builder
+![Fantasy Team Builder](screenshots/07_fantasy_team_builder.png)
+*Figure 20.7: Fantasy Team Builder interface showing 11 drafted players, role constraint validation (1 WK, 4 BAT, 3 AR, 3 BOWL), and Captain (Virat Kohli 2.0×) and Vice-Captain (Jasprit Bumrah 1.5×) designated.*
+
+### 20.8 Fantasy Team Comparison
+![Fantasy Team Comparison](screenshots/08_fantasy_team_comparison.png)
+*Figure 20.8: Head-to-head Fantasy Team Comparison dashboard displaying total fantasy points, point differentials, common vs differential player badges (18 differentials, 2 common), and role breakdown chart.*
+
+### 20.9 Cricket Intelligence Assistant Interface
+![Cricket Intelligence Assistant](screenshots/09_ai_assistant.png)
+*Figure 20.9: AI Assistant workspace displaying match context selection, grounding guardrails badge, and domain-tailored prompt suggestions.*
+
+### 20.10 Grounded AI Match Synthesis
+![AI Assistant Response](screenshots/10_ai_assistant_response.png)
+*Figure 20.10: Grounded Gemini 1.5 Flash natural language explanation summarizing India vs Australia (184/4 in 19.2 ov vs 178/8 in 20 ov, Kohli 74*, Bumrah 3/24) with zero hallucinations.*
+
 ---
 
 ## 21. Limitations

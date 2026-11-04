@@ -340,26 +340,24 @@ export const fantasyService = {
     }
 
     // Attempt Edge Function / Supabase query if configured
-    if (isSupabaseConfigured()) {
+    const isMockId = (id) => ['ft-ind-titans', 'ft-royal-strikers', 'ft-aussie-blitz'].includes(id) || id?.startsWith('mock-');
+    if (isSupabaseConfigured() && !isMockId(team1Id) && !isMockId(team2Id)) {
       try {
         const response = await apiClient.get('/compare-fantasy-teams', {
           params: { team1Id, team2Id },
         });
-        if (response.data?.status === 'success') {
+        const resultData = response.data?.data?.data || response.data?.data || response.data;
+        if (resultData?.team1) {
           return {
-            ...response.data.data,
-            isDemoData: false,
-          };
-        } else if (response.data?.team1) {
-          return {
-            ...response.data,
+            ...resultData,
             isDemoData: false,
           };
         }
       } catch (err) {
-        if (err.response?.data?.message) {
+        if (err.response?.status === 400 && err.response?.data?.message) {
           throw new Error(err.response.data.message);
         }
+        // Fall back gracefully to verified sample dataset if teams are demo or pending sync
       }
     }
 
