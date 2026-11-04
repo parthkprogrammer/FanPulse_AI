@@ -425,43 +425,52 @@ enabled = true
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/health-check/index.ts"
+import_map = "./functions/import_map.json"
 
 [functions.validate-fantasy-team]
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/validate-fantasy-team/index.ts"
+import_map = "./functions/import_map.json"
 
 [functions.compare-fantasy-teams]
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/compare-fantasy-teams/index.ts"
+import_map = "./functions/import_map.json"
 
 [functions.calculate-fantasy-scoring]
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/calculate-fantasy-scoring/index.ts"
+import_map = "./functions/import_map.json"
 
 [functions.manage-fantasy-teams]
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/manage-fantasy-teams/index.ts"
+import_map = "./functions/import_map.json"
 
 [functions.manage-matches]
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/manage-matches/index.ts"
+import_map = "./functions/import_map.json"
 
 [functions.manage-players]
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/manage-players/index.ts"
+import_map = "./functions/import_map.json"
 
 [functions.sync-cricket-data]
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/sync-cricket-data/index.ts"
+import_map = "./functions/import_map.json"
 
 [functions.ai-assistant]
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/ai-assistant/index.ts"
+import_map = "./functions/import_map.json"

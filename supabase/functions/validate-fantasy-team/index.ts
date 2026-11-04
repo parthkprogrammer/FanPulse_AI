@@ -1,6 +1,6 @@
 import { handleCors } from '../_shared/cors.ts';
 import { jsonResponse, errorResponse } from '../_shared/response.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.48.1';
+import { createClient } from '@supabase/supabase-js';
 
 interface PlayerSelection {
   id: string;
