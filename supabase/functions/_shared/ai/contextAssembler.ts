@@ -221,8 +221,9 @@ export async function assembleMatchContext(
         id,
         innings_number,
         total_runs,
-        wickets,
-        overs,
+        total_wickets,
+        overs_completed,
+        extras,
         is_completed,
         batting_team:teams!batting_team_id(id, name, code),
         bowling_team:teams!bowling_team_id(id, name, code)
@@ -242,7 +243,7 @@ export async function assembleMatchContext(
         sixes,
         strike_rate,
         is_out,
-        dismissal_text,
+        dismissal_type,
         overs_bowled,
         maidens,
         runs_conceded,
@@ -259,13 +260,12 @@ export async function assembleMatchContext(
       .from('fantasy_player_points')
       .select(`
         player_id,
-        total_points,
-        batting_points,
-        bowling_points,
+        base_points,
+        final_points,
         player:players(name, primary_role)
       `)
       .eq('match_id', matchId)
-      .order('total_points', { ascending: false });
+      .order('final_points', { ascending: false });
 
     // Format assembled context
     const inningsList: InningsContextItem[] = (dbInnings || []).map((inn: any) => {
@@ -273,39 +273,42 @@ export async function assembleMatchContext(
       const statsForInnings = (dbStats || []).filter((s: any) => s.innings_number === innNumber);
 
       const topBatters = statsForInnings
-        .filter((s: any) => s.balls_faced > 0 || s.runs_scored > 0)
+        .filter((s: any) => (s.balls_faced || 0) > 0 || (s.runs_scored || 0) > 0)
         .slice(0, 3)
         .map((b: any) => ({
           name: b.player?.name || 'Unknown Batter',
-          runs: b.runs_scored,
-          balls: b.balls_faced,
-          fours: b.fours,
-          sixes: b.sixes,
+          runs: b.runs_scored ?? 0,
+          balls: b.balls_faced ?? 0,
+          fours: b.fours ?? 0,
+          sixes: b.sixes ?? 0,
           strikeRate: Number(b.strike_rate || 0),
-          status: b.is_out ? b.dismissal_text || 'OUT' : 'NOT_OUT',
+          status: b.is_out ? (b.dismissal_type || b.dismissal_text || 'OUT') : 'NOT_OUT',
         }));
 
       const keyBowlers = statsForInnings
-        .filter((s: any) => Number(s.overs_bowled) > 0)
+        .filter((s: any) => Number(s.overs_bowled || 0) > 0)
         .sort((a: any, b: any) => (b.wickets_taken || 0) - (a.wickets_taken || 0))
         .slice(0, 3)
         .map((bw: any) => ({
           name: bw.player?.name || 'Unknown Bowler',
-          overs: String(bw.overs_bowled),
-          maidens: bw.maidens,
-          runs: bw.runs_conceded,
-          wickets: bw.wickets_taken,
+          overs: String(bw.overs_bowled ?? '0.0'),
+          maidens: bw.maidens ?? 0,
+          runs: bw.runs_conceded ?? 0,
+          wickets: bw.wickets_taken ?? 0,
           economy: Number(bw.economy_rate || 0),
         }));
 
-      const oversNum = Number(inn.overs || 0);
-      const rr = oversNum > 0 ? Number(((inn.total_runs || 0) / oversNum).toFixed(2)) : 0;
+      const oversVal = inn.overs_completed ?? inn.overs ?? '0.0';
+      const oversNum = Number(oversVal);
+      const wicketsVal = inn.total_wickets ?? inn.wickets ?? 0;
+      const totalRuns = inn.total_runs ?? 0;
+      const rr = oversNum > 0 ? Number((totalRuns / oversNum).toFixed(2)) : 0;
 
       return {
         inningsNumber: innNumber,
         team: inn.batting_team?.name || 'Team',
-        total: `${inn.total_runs || 0}/${inn.wickets || 0}`,
-        overs: String(inn.overs || '0.0'),
+        total: `${totalRuns}/${wicketsVal}`,
+        overs: String(oversVal),
         runRate: rr,
         topBatters,
         keyBowlers,
@@ -314,9 +317,44 @@ export async function assembleMatchContext(
 
     const topScoring = (dbFantasyPoints || []).slice(0, 5).map((fp: any) => ({
       name: fp.player?.name || 'Player',
-      basePoints: Number(fp.total_points || 0),
+      basePoints: Number(fp.final_points ?? fp.base_points ?? fp.total_points ?? 0),
       role: fp.player?.primary_role,
     }));
+
+    let topPerformers: TopPerformerContextItem[] = sampleFallback?.topPerformers || [];
+    if (dbStats && dbStats.length > 0) {
+      const performers: TopPerformerContextItem[] = [];
+      const batters = [...dbStats]
+        .filter((s: any) => (s.runs_scored || 0) > 0)
+        .sort((a: any, b: any) => (b.runs_scored || 0) - (a.runs_scored || 0))
+        .slice(0, 3);
+      for (const b of batters) {
+        performers.push({
+          name: b.player?.name || 'Unknown',
+          team: b.team?.code || '',
+          role: b.player?.primary_role || 'BATTER',
+          stats: `${b.runs_scored} off ${b.balls_faced}b (SR ${b.strike_rate || 0})`,
+        });
+      }
+      const bowlers = [...dbStats]
+        .filter((s: any) => (s.wickets_taken || 0) > 0)
+        .sort((a: any, b: any) => (b.wickets_taken || 0) - (a.wickets_taken || 0))
+        .slice(0, 2);
+      for (const bw of bowlers) {
+        performers.push({
+          name: bw.player?.name || 'Unknown',
+          team: bw.team?.code || '',
+          role: bw.player?.primary_role || 'BOWLER',
+          stats: `${bw.wickets_taken}/${bw.runs_conceded} (${bw.overs_bowled} ov)`,
+        });
+      }
+      if (performers.length > 0) {
+        topPerformers = performers;
+      }
+    }
+
+    const team1Score = inningsList.find((i) => i.team === (dbMatch.team1 as any)?.name);
+    const team2Score = inningsList.find((i) => i.team === (dbMatch.team2 as any)?.name);
 
     return {
       metadata: {
@@ -335,10 +373,14 @@ export async function assembleMatchContext(
       scores: {
         inningsCount: inningsList.length,
         summary: inningsList.map((i) => `${i.team}: ${i.total} (${i.overs} ov)`).join(', ') || 'No scores recorded',
+        ...(team1Score ? { team1: { name: team1Score.team, score: team1Score.total, overs: team1Score.overs, runRate: team1Score.runRate } } : (sampleFallback?.scores?.team1 ? { team1: sampleFallback.scores.team1 } : {})),
+        ...(team2Score ? { team2: { name: team2Score.team, score: team2Score.total, overs: team2Score.overs, runRate: team2Score.runRate } } : (sampleFallback?.scores?.team2 ? { team2: sampleFallback.scores.team2 } : {})),
       },
       innings: inningsList,
+      topPerformers,
+      turningPoints: sampleFallback?.turningPoints || [],
       fantasySnapshot: {
-        topScoringPlayers: topScoring,
+        topScoringPlayers: topScoring.length > 0 ? topScoring : (sampleFallback?.fantasySnapshot?.topScoringPlayers || []),
       },
       dataFreshness: 'AUTHORITATIVE_POSTGRES_RECORDS',
     };
