@@ -4,7 +4,7 @@
 **Version:** `1.0.0`  
 **Status:** Approved  
 **Author:** Senior Integration Architect  
-**References:** [DATABASE_DESIGN.md](file:///u:/Fanpulse_AI/docs/DATABASE_DESIGN.md), [API_DESIGN.md](file:///u:/Fanpulse_AI/docs/API_DESIGN.md), [SYSTEM_ARCHITECTURE.md](file:///u:/Fanpulse_AI/docs/SYSTEM_ARCHITECTURE.md#L711-L716), [ENVIRONMENT_SETUP.md](file:///u:/Fanpulse_AI/docs/ENVIRONMENT_SETUP.md#L142-L143)
+**References:** [DATABASE_DESIGN.md](file:///u:/Fanpulse_AI/docs/DATABASE_DESIGN.md), [API_DESIGN.md](file:///u:/Fanpulse_AI/docs/API_REFERENCE.md), [SYSTEM_ARCHITECTURE.md](file:///u:/Fanpulse_AI/docs/SYSTEM_ARCHITECTURE.md#L711-L716), [ENVIRONMENT_SETUP.md](file:///u:/Fanpulse_AI/docs/ENVIRONMENT_SETUP.md#L142-L143)
 
 ---
 

@@ -1,3 +1,14 @@
+> [!NOTE]
+> **Historical Prototype Specification:** This document captures the initial Phase 0 architectural proposal (Java / Spring Boot / Spring Data JPA). As documented in the production architecture, FanPulse AI transitioned to **Supabase Edge Functions (Deno / TypeScript)** and **Supabase PostgreSQL** for streamlined cloud deployment, Row-Level Security (RLS), and zero-maintenance serverless scaling.
+>
+> For the current production implementation, please consult:
+> - [System Architecture](../SYSTEM_ARCHITECTURE.md)
+> - [API Reference](../API_REFERENCE.md)
+> - [AI Implementation](../AI_IMPLEMENTATION.md)
+> - [Database Schema](../DATABASE_SCHEMA.md)
+
+---
+
 # FanPulse AI — RESTful API Specification
 
 > Complete REST API contract, DTO definitions, validation rules, and error handling for Spring Boot backend services.

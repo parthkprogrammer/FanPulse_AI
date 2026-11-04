@@ -1,7 +1,7 @@
 # FanPulse AI — Frontend UI/UX & Architecture Specification
 
 > Comprehensive React, TypeScript, and Tailwind CSS frontend system design for FanPulse AI.
-> Derived from [PROJECT_VISION.md](file:///U:/Fanpulse_AI/docs/PROJECT_VISION.md), [REQUIREMENTS.md](file:///U:/Fanpulse_AI/docs/REQUIREMENTS.md), [SYSTEM_ARCHITECTURE.md](file:///U:/Fanpulse_AI/docs/SYSTEM_ARCHITECTURE.md), [TECHNOLOGY_STACK.md](file:///U:/Fanpulse_AI/docs/TECHNOLOGY_STACK.md), and [API_DESIGN.md](file:///U:/Fanpulse_AI/docs/API_DESIGN.md).
+> Derived from [PROJECT_VISION.md](file:///U:/Fanpulse_AI/docs/PROJECT_VISION.md), [REQUIREMENTS.md](file:///U:/Fanpulse_AI/docs/REQUIREMENTS.md), [SYSTEM_ARCHITECTURE.md](file:///U:/Fanpulse_AI/docs/SYSTEM_ARCHITECTURE.md), [TECHNOLOGY_STACK.md](file:///U:/Fanpulse_AI/docs/TECHNOLOGY_STACK.md), and [API_DESIGN.md](file:///u:/Fanpulse_AI/docs/API_REFERENCE.md).
 
 ---
 
@@ -615,7 +615,7 @@ Internal operational control center for managing matches, triggering scoring rec
 * `AdminMetricsRow`: Total Users, Seeded Matches, Active Players, Fantasy Teams Drafted.
 * `MatchManagementTable`: Table of matches with status toggles (`UPCOMING` -> `IN_PROGRESS` -> `COMPLETED`).
 * `ManualScoreTriggerCard`: Quick tool to trigger `POST /api/v1/matches/:id/scoring/calculate` after data corrections.
-* `SeedDataNotice`: Displays database seed status (`Flyway migration V2 active`).
+* `SeedDataNotice`: Displays database seed status (`Supabase seed.sql active`).
 * `PlayerManagementModal`: Modal to edit player roles or injury statuses.
 
 #### 3. User Interactions

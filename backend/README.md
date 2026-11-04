@@ -8,6 +8,10 @@ In accordance with the approved FanPulse AI architecture, backend services are p
 - Reusable server modules, CORS policies, response formatters, and client factories reside in [`/supabase/functions/_shared/`](file:///U:/Fanpulse_AI/supabase/functions/_shared/).
 - Database migrations, RLS policies, and schema definitions reside in [`/supabase/migrations/`](file:///U:/Fanpulse_AI/supabase/migrations/).
 
-## Architecture Reference
+## Architecture & API References
 
-For detailed architectural flow, Edge Function specifications, and communication contracts with the React frontend, see [`docs/SUPABASE_ARCHITECTURE.md`](file:///U:/Fanpulse_AI/docs/SUPABASE_ARCHITECTURE.md).
+For detailed architectural flows and Edge Function API contracts:
+- [`docs/SYSTEM_ARCHITECTURE.md`](file:///U:/Fanpulse_AI/docs/SYSTEM_ARCHITECTURE.md) — Production architecture specification and sequence flows
+- [`docs/API_REFERENCE.md`](file:///U:/Fanpulse_AI/docs/API_REFERENCE.md) — Authoritative endpoint contracts for all 9 deployed Edge Functions
+- [`docs/SUPABASE_ARCHITECTURE.md`](file:///U:/Fanpulse_AI/docs/SUPABASE_ARCHITECTURE.md) — Supabase platform integration and security rules
+- [`docs/AI_IMPLEMENTATION.md`](file:///U:/Fanpulse_AI/docs/AI_IMPLEMENTATION.md) — Google Gemini 1.5 Flash integration and telemetry grounding

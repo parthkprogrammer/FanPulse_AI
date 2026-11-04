@@ -4,7 +4,7 @@
 **Version:** `1.0.0`  
 **Status:** Approved  
 **Author:** Senior Application Security Engineer  
-**References:** [DATABASE_DESIGN.md](file:///u:/Fanpulse_AI/docs/DATABASE_DESIGN.md), [API_DESIGN.md](file:///u:/Fanpulse_AI/docs/API_DESIGN.md), [DATABASE_OPTIMIZATION.md](file:///u:/Fanpulse_AI/docs/DATABASE_OPTIMIZATION.md)
+**References:** [DATABASE_DESIGN.md](file:///u:/Fanpulse_AI/docs/DATABASE_DESIGN.md), [API_DESIGN.md](file:///u:/Fanpulse_AI/docs/API_REFERENCE.md), [DATABASE_OPTIMIZATION.md](file:///u:/Fanpulse_AI/docs/DATABASE_OPTIMIZATION.md)
 
 ---
 

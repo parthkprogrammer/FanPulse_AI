@@ -1,3 +1,14 @@
+> [!NOTE]
+> **Historical Prototype Specification:** This document captures the initial Phase 0 architectural proposal (Java / Spring Boot / Spring Data JPA). As documented in the production architecture, FanPulse AI transitioned to **Supabase Edge Functions (Deno / TypeScript)** and **Supabase PostgreSQL** for streamlined cloud deployment, Row-Level Security (RLS), and zero-maintenance serverless scaling.
+>
+> For the current production implementation, please consult:
+> - [System Architecture](../SYSTEM_ARCHITECTURE.md)
+> - [API Reference](../API_REFERENCE.md)
+> - [AI Implementation](../AI_IMPLEMENTATION.md)
+> - [Database Schema](../DATABASE_SCHEMA.md)
+
+---
+
 # FanPulse AI — AI Module Architecture & Engineering Specification
 
 > Comprehensive system design for grounded, conversational cricket match explanations and fantasy insights.

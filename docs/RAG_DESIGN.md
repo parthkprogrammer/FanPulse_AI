@@ -3,7 +3,7 @@
 > **Architectural Decision Record (ADR-004)** & Engineering Specification  
 > **Author**: Senior RAG Architect & AI Systems Engineer  
 > **Scope**: Evaluation of Retrieval-Augmented Generation (RAG) vs. Direct Structured Context Injection for Cricket Telemetry, Rules, Glossary, and Fantasy Scoring.  
-> **Conforms to**: [AI_MODULE_DESIGN.md](file:///u:/Fanpulse_AI/docs/AI_MODULE_DESIGN.md), [AI_PROMPTS.md](file:///u:/Fanpulse_AI/docs/AI_PROMPTS.md), [DATABASE_DESIGN.md](file:///u:/Fanpulse_AI/docs/DATABASE_DESIGN.md), and [TECHNOLOGY_STACK.md](file:///u:/Fanpulse_AI/docs/TECHNOLOGY_STACK.md).
+> **Conforms to**: [AI_MODULE_DESIGN.md](file:///u:/Fanpulse_AI/docs/AI_IMPLEMENTATION.md), [AI_PROMPTS.md](file:///u:/Fanpulse_AI/docs/AI_PROMPTS.md), [DATABASE_DESIGN.md](file:///u:/Fanpulse_AI/docs/DATABASE_DESIGN.md), and [TECHNOLOGY_STACK.md](file:///u:/Fanpulse_AI/docs/TECHNOLOGY_STACK.md).
 
 ---
 
