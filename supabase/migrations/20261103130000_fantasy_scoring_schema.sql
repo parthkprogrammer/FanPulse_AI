@@ -113,12 +113,9 @@ CREATE POLICY "Public read access for scoring_rules"
 CREATE POLICY "Admin write access for scoring_rules"
     ON public.scoring_rules
     FOR ALL
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.user_roles ur
-            WHERE ur.user_id = auth.uid() AND ur.role = 'ADMIN'
-        )
-    );
+    TO authenticated
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
 
 -- Fantasy Player Points RLS:
 -- Users can view points for their own fantasy teams or match scoreboards
@@ -129,10 +126,7 @@ CREATE POLICY "Users can view player points for their teams"
         EXISTS (
             SELECT 1 FROM public.fantasy_teams ft
             WHERE ft.id = fantasy_player_points.fantasy_team_id
-              AND (ft.user_id = auth.uid() OR EXISTS (
-                  SELECT 1 FROM public.user_roles ur
-                  WHERE ur.user_id = auth.uid() AND ur.role = 'ADMIN'
-              ))
+              AND (ft.user_id = auth.uid() OR public.is_admin())
         )
     );
 
@@ -140,23 +134,16 @@ CREATE POLICY "Users can view player points for their teams"
 CREATE POLICY "Admin write access for fantasy_player_points"
     ON public.fantasy_player_points
     FOR ALL
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.user_roles ur
-            WHERE ur.user_id = auth.uid() AND ur.role = 'ADMIN'
-        )
-    );
+    TO authenticated
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
 
 -- Scoring Audit Logs RLS: Admin read
 CREATE POLICY "Admin read access for scoring_audit_logs"
     ON public.scoring_audit_logs
     FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.user_roles ur
-            WHERE ur.user_id = auth.uid() AND ur.role = 'ADMIN'
-        )
-    );
+    TO authenticated
+    USING (public.is_admin());
 
 -- 6. Atomic Stored Procedure: Persist Fantasy Points For Team
 CREATE OR REPLACE FUNCTION public.save_team_fantasy_points_atomic(
