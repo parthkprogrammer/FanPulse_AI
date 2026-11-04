@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://placeholder-project.supabase.co/functions/v1';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.VITE_SUPABASE_URL &&
+   !import.meta.env.VITE_SUPABASE_URL.includes('your-project-id') &&
+   !import.meta.env.VITE_SUPABASE_URL.includes('placeholder-project')
+    ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`
+    : 'https://placeholder-project.supabase.co/functions/v1');
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,

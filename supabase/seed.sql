@@ -80,11 +80,11 @@ ON CONFLICT (player_id) DO UPDATE SET
 -- 4. SEED MATCH FIXTURES
 -- ==============================================================================
 INSERT INTO public.matches 
-    (id, title, team1_id, team2_id, format, status, venue, match_date, toss_winner_team_id, toss_decision, winning_team_id, result_type, win_margin, win_margin_type, result_summary)
+    (id, title, team1_id, team2_id, format, status, venue, match_date, toss_winner_team_id, toss_decision, winning_team_id, result_type, result_summary)
 VALUES
-    ('m-ind-aus-t20', 'India vs Australia — 3rd T20I', 'team-ind', 'team-aus', 'T20', 'LIVE', 'Melbourne Cricket Ground, Melbourne', '2026-11-03T13:30:00Z', 'team-aus', 'BOWL', NULL, NULL, NULL, NULL, NULL),
-    ('m-eng-sa-odi', 'England vs South Africa — 1st ODI', 'team-eng', 'team-sa', 'ODI', 'COMPLETED', 'Lord''s, London', '2026-11-02T10:00:00Z', 'team-eng', 'BAT', 'team-eng', 'NORMAL', 24, 'RUNS', 'England won by 24 runs'),
-    ('m-nz-pak-t20', 'New Zealand vs Pakistan — 2nd T20I', 'team-nz', 'team-pak', 'T20', 'UPCOMING', 'Eden Park, Auckland', '2026-11-04T06:00:00Z', NULL, NULL, NULL, NULL, NULL, NULL, 'Starts tomorrow at 06:00 UTC')
+    ('m-ind-aus-t20', 'India vs Australia — 3rd T20I', 'team-ind', 'team-aus', 'T20', 'LIVE', 'Melbourne Cricket Ground, Melbourne', '2026-11-03T13:30:00Z', 'team-aus', 'BOWL', NULL, NULL, NULL),
+    ('m-eng-sa-odi', 'England vs South Africa — 1st ODI', 'team-eng', 'team-sa', 'ODI', 'COMPLETED', 'Lord''s, London', '2026-11-02T10:00:00Z', 'team-eng', 'BAT', 'team-eng', 'NORMAL', 'England won by 24 runs'),
+    ('m-nz-pak-t20', 'New Zealand vs Pakistan — 2nd T20I', 'team-nz', 'team-pak', 'T20', 'UPCOMING', 'Eden Park, Auckland', '2026-11-04T06:00:00Z', NULL, NULL, NULL, NULL, 'Starts tomorrow at 06:00 UTC')
 ON CONFLICT (id) DO UPDATE SET
     status = EXCLUDED.status,
     result_summary = EXCLUDED.result_summary;
@@ -160,27 +160,10 @@ ON CONFLICT (match_id, player_id, innings_number) DO UPDATE SET
 -- ==============================================================================
 -- 8. SEED BALL EVENTS (KEY MOMENTS TIMELINE)
 -- ==============================================================================
-DO $$
-DECLARE
-    v_inn1_id UUID;
-    v_inn2_id UUID;
-BEGIN
-    SELECT id INTO v_inn1_id FROM public.match_innings WHERE match_id = 'm-ind-aus-t20' AND innings_number = 1;
-    SELECT id INTO v_inn2_id FROM public.match_innings WHERE match_id = 'm-ind-aus-t20' AND innings_number = 2;
-
-    IF v_inn1_id IS NOT NULL THEN
-        INSERT INTO public.ball_events (innings_id, over_number, ball_number, legal_ball_number, bowler_player_id, batter_player_id, non_striker_player_id, runs_batter, is_boundary_four, is_wicket, commentary_text)
-        VALUES
-            (v_inn1_id, 1, 1, 1, 'p-jasprit-b', 'p-travis-h', 'p-david-w', 0, false, false, 'Jasprit Bumrah opens with a testing 142kph delivery on off stump.'),
-            (v_inn1_id, 4, 3, 3, 'p-jasprit-b', 'p-david-w', 'p-travis-h', 0, false, true, 'OUT! Bumrah cleans up David Warner with an unplayable in-swinging yorker!')
-        ON CONFLICT DO NOTHING;
-    END IF;
-
-    IF v_inn2_id IS NOT NULL THEN
-        INSERT INTO public.ball_events (innings_id, over_number, ball_number, legal_ball_number, bowler_player_id, batter_player_id, non_striker_player_id, runs_batter, is_boundary_four, is_boundary_six, commentary_text)
-        VALUES
-            (v_inn2_id, 18, 1, 1, 'p-pat-c', 'p-hardik-p', 'p-virat-k', 4, true, false, 'FOUR! Hardik Pandya smashes Pat Cummins through extra cover.'),
-            (v_inn2_id, 18, 2, 2, 'p-pat-c', 'p-hardik-p', 'p-virat-k', 6, false, true, 'SIX! What a strike! Hardik lofts it clean into the Melbourne stands!')
-        ON CONFLICT DO NOTHING;
-    END IF;
-END $$;
+INSERT INTO public.ball_events 
+    (match_id, innings_number, over_number, ball_number, legal_ball_number, bowler_name, batter_name, runs_batter, runs_extras, is_wicket, commentary)
+VALUES
+    ('m-ind-aus-t20', 1, 1, 1, 1, 'Jasprit Bumrah', 'Travis Head', 0, 0, false, 'Jasprit Bumrah opens with a testing 142kph delivery on off stump.'),
+    ('m-ind-aus-t20', 1, 4, 3, 3, 'Jasprit Bumrah', 'David Warner', 0, 0, true, 'OUT! Bumrah cleans up David Warner with an unplayable in-swinging yorker!'),
+    ('m-ind-aus-t20', 2, 18, 1, 1, 'Pat Cummins', 'Hardik Pandya', 4, 0, false, 'FOUR! Hardik Pandya smashes Pat Cummins through extra cover.'),
+    ('m-ind-aus-t20', 2, 18, 2, 2, 'Pat Cummins', 'Hardik Pandya', 6, 0, false, 'SIX! What a strike! Hardik lofts it clean into the Melbourne stands!');
